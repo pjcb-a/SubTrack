@@ -1,4 +1,12 @@
 <script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const handleLogin = () => {
+  // put API/Database check here.
+  router.push('/dashboard');
+};
 </script>
 
 <template>
@@ -15,7 +23,7 @@
         <input type="password" id="password" placeholder="Enter password" />
     </div>
 
-    <button class="submit-btn">Login</button>
+    <button @click="handleLogin" class="submit-btn">Login</button>
   </div>
 </template>
 

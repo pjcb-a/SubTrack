@@ -1,11 +1,15 @@
 <script setup>
-import AuthPage from './components/authorization/AuthPage.vue';
+
 </script>
 
 <template>
-  <AuthPage />
+  <router-view />
 </template>
 
 <style scoped>
-
+  body {
+  margin: 0;
+  padding: 0;
+  box-sizing:border-box;
+  }
 </style>
