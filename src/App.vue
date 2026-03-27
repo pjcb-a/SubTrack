@@ -1,7 +1,11 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import AuthPage from './components/AuthPage.vue';
 </script>
 
 <template>
-  <HelloWorld />
+  <AuthPage />
 </template>
+
+<style scoped>
+
+</style>
