@@ -67,7 +67,7 @@
   border: 1px solid transparent;
   border-radius: 10px;
   font-family: 'Montserrat', sans-serif;
-  transition: border-color 0.5s;
+  transition: border-color 0.5s ease;
 }
 
 .input-group input:focus {
@@ -91,7 +91,9 @@
 }
 
 .submit-btn:hover {
-  background: #bcbcbc;
-  transform: translateY(-2px);
+  background: #2e813d;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  transform: translateY(-5px);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 </style>
