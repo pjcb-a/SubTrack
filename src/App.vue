@@ -1,5 +1,5 @@
 <script setup>
-import AuthPage from './components/AuthPage.vue';
+import AuthPage from './components/authorization/AuthPage.vue';
 </script>
 
 <template>
