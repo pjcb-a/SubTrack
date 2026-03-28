@@ -1,11 +1,24 @@
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
+import { useSubscriptions } from '../../composables/useSubscriptions';
 
-// Mock Data for upcoming payments
-const upcomingSubs = ref([
-  { id: 1, name: 'Netflix', dueDate: 'Apr 02', price: '$15.99' },
-  { id: 2, name: 'Spotify', dueDate: 'Apr 05', price: '$9.99' },
-]);
+const { subscriptions } = useSubscriptions();
+
+// 1. Sort subscriptions by nearest due date to show in the "Upcoming" column
+const upcomingSubs = computed(() => {
+  return [...subscriptions.value]
+    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+    .slice(0, 3); // Show only the top 3 upcoming
+});
+
+// 2. Calculate dynamic stats
+const totalActive = computed(() => subscriptions.value.length);
+const monthlyCount = computed(() => subscriptions.value.filter(s => s.cycle === 'monthly').length);
+const annualCount = computed(() => subscriptions.value.filter(s => s.cycle === 'annual').length);
+
+// 3. Calculate Progress Bar Percentages dynamically
+const monthlyPercentage = computed(() => totalActive.value === 0 ? 0 : (monthlyCount.value / totalActive.value) * 100);
+const annualPercentage = computed(() => totalActive.value === 0 ? 0 : (annualCount.value / totalActive.value) * 100);
 </script>
 
 <template>

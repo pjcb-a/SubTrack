@@ -28,7 +28,7 @@ const navLinks = ref([
       <div class="icon-circle profile-icon">
         <i class="fa-solid fa-user"></i>
       </div>
-      <span class="link-text"> Nigga </span>
+      <span class="link-text"> USERODSDOS </span>
     </div>
 
     <div class="nav-links">
@@ -66,6 +66,7 @@ const navLinks = ref([
   flex-direction: column; 
   padding: 40px 15px;
   box-sizing: border-box;
+  border-radius: 0 18px 18px 0;
 }
 
 /* 1. Reset User Profile */

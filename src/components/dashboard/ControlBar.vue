@@ -27,8 +27,8 @@ const selectedCycle = ref('all');
 
     <div class="filter-group">
       <div class="select-wrapper">
-        <select v-model="selectedCycle" class="payment-dropdown">
-          <option value="monthly">Monthly</option>
+        <select v-model="selectedCycle" class="payment-dropdown" value="Payment Cycle">
+          <option value="monthly" required>Monthly</option>
           <option value="annual">Annual</option>
           <option value="weekly">Weekly</option>
         </select>
@@ -80,7 +80,8 @@ const selectedCycle = ref('all');
 }
 
 .control-btn:hover { 
-  background-color: #e0e0e0; 
+  background-color: #004d26;
+  color: #bcbcbc; 
   transform: translateY(-1px); 
 }
 
