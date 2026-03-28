@@ -6,8 +6,8 @@ import { ref } from 'vue';
 // Declared OUTSIDE the function so the state is shared across all components
 const subscriptions = ref([
   // Initial dummy data so your StatGrid isn't empty immediately
-  { id: 1, name: 'Netflix', category: 'Entertainment', amount: 15.99, cycle: 'monthly', dueDate: '2026-04-02', notifyDays: 3 },
-  { id: 2, name: 'Spotify', category: 'Music', amount: 9.99, cycle: 'monthly', dueDate: '2026-04-05', notifyDays: 1 },
+  { id: 1, name: 'Netflix', category: 'Entertainment', amount: 1500, cycle: 'monthly', dueDate: '2026-04-02', notifyDays: 3 },
+  { id: 2, name: 'Spotify', category: 'Music', amount: 2500, cycle: 'monthly', dueDate: '2026-04-05', notifyDays: 1 },
 ]);
 
 export function useSubscriptions() {

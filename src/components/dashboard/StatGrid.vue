@@ -4,11 +4,11 @@ import { useSubscriptions } from '../../composables/useSubscriptions';
 
 const { subscriptions } = useSubscriptions();
 
-// 1. Sort subscriptions by nearest due date to show in the "Upcoming" column
+// 1. Sort subscriptions by nearest due date
 const upcomingSubs = computed(() => {
   return [...subscriptions.value]
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-    .slice(0, 3); // Show only the top 3 upcoming
+    .slice(0, 3);
 });
 
 // 2. Calculate dynamic stats
@@ -19,6 +19,19 @@ const annualCount = computed(() => subscriptions.value.filter(s => s.cycle === '
 // 3. Calculate Progress Bar Percentages dynamically
 const monthlyPercentage = computed(() => totalActive.value === 0 ? 0 : (monthlyCount.value / totalActive.value) * 100);
 const annualPercentage = computed(() => totalActive.value === 0 ? 0 : (annualCount.value / totalActive.value) * 100);
+
+/// Calculate Total Annual Spend dynamically in Peso
+const totalAnnualSpend = computed(() => {
+  const total = subscriptions.value.reduce((acc, sub) => {
+    const amount = Number(sub.amount) || 0;
+    if (sub.cycle === 'monthly') return acc + (amount * 12);
+    if (sub.cycle === 'weekly') return acc + (amount * 52);
+    return acc + amount; // Annual
+  }, 0);
+  
+  // Format with Philippine Locale
+  return total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+});
 </script>
 
 <template>
@@ -26,15 +39,16 @@ const annualPercentage = computed(() => totalActive.value === 0 ? 0 : (annualCou
     <div class="stat-card upcoming-payments">
       <h3>Upcoming Payments</h3>
 
-      <!-- container for dynamic subscriptions -->
       <div class="stat-content">
+        <p v-if="upcomingSubs.length === 0" style="color: #666; font-style: italic; padding: 10px 0;">No upcoming payments.</p>
+        
         <div v-for="sub in upcomingSubs" :key="sub.id" class="sub-item">
-          <div class="sub-icon"></div>
+          <div class="sub-icon">{{ sub.name.charAt(0).toUpperCase() }}</div>
           <div class="sub-details">
             <p class="sub-name">{{ sub.name }}</p>
             <p class="sub-date">Due: {{ sub.dueDate }}</p>
           </div>
-          <p class="sub-price">{{ sub.price }}</p>
+          <p class="sub-price">₱{{ sub.amount }}</p>
         </div>
       </div>
     </div>
@@ -42,20 +56,20 @@ const annualPercentage = computed(() => totalActive.value === 0 ? 0 : (annualCou
     <div class="stat-card subs-list">
       <h3>Your Active Subs</h3>
       <div class="stat-summary">
-        <p class="count">6</p>
+        <p class="count">{{ totalActive }}</p>
         <p class="label">Total Active</p>
       </div>
       <div class="progress-container">
-        <div class="progress-bar monthly" style="width: 70%"></div>
-        <div class="progress-bar annual" style="width: 30%"></div>
+        <div class="progress-bar monthly" :style="{ width: monthlyPercentage + '%' }"></div>
+        <div class="progress-bar annual" :style="{ width: annualPercentage + '%' }"></div>
       </div>
       <p class="legend"><span>● Monthly</span> / <span>● Annual</span></p>
     </div>
 
     <div class="stat-card total-spend">
       <h3>Total Annual Spend</h3>
-      <p class="total-amount">$1,450.75</p>
-      <p class="comparison">+2% from last year</p>
+      <p class="total-amount">₱{{ totalAnnualSpend }}</p>
+      <p class="comparison">Based on active subscriptions</p>
     </div>
   </div>
 </template>

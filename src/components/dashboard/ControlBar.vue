@@ -3,9 +3,13 @@
 <script setup>
 import { ref } from 'vue';
 import AddSubscriptionModal from './AddSubscriptionModal.vue';
+import UpdateSubscriptionModal from './UpdateSubscriptionModal.vue';
+import DeleteSubscriptionModal from './DeleteSubscriptionModal.vue';
 
 const selectedCycle = ref('all');
 const showAddModal = ref(false); // Controls if the modal is in the DOM
+const showUpdateModal = ref(false); // Controls if the update modal is in the DOM
+const showDeleteModal = ref(false); // Controls if the delete modal is in the DOM
 </script>
 
 <template>
@@ -16,12 +20,12 @@ const showAddModal = ref(false); // Controls if the modal is in the DOM
         <span>Add</span>
       </button>
 
-      <button class="control-btn update-btn">
+      <button class="control-btn update-btn" @click="showUpdateModal = true">
         <i class="fa solid fa-edit"></i>
         <span>Update</span>
       </button>
       
-      <button class="control-btn delete-btn">
+      <button class="control-btn delete-btn" @click="showDeleteModal = true">
         <i class="fa solid fa-trash"></i>
         <span>Delete</span>
       </button>
@@ -48,7 +52,16 @@ const showAddModal = ref(false); // Controls if the modal is in the DOM
     v-if="showAddModal"
     @close="showAddModal = false"
   />
-  
+
+  <UpdateSubscriptionModal
+    v-if="showUpdateModal"
+    @close="showUpdateModal = false"
+  />
+
+  <DeleteSubscriptionModal
+    v-if="showDeleteModal"
+    @close="showDeleteModal = false"
+  />
 </template>
 
 <style scoped>

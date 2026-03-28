@@ -46,7 +46,7 @@ const submitAdd = () => {
 
       <div class="input-group">
         <label>Amount </label>
-        <input v-model="newSub.amount" type="number" step="0.01" placeholder="15.99" />
+        <input v-model="newSub.amount" type="number" step="0.01" placeholder="1000" />
       </div>
 
       <div class="input-group">
@@ -72,6 +72,7 @@ const submitAdd = () => {
 
 <style scoped>
 .modal-overlay {
+    font-family: 'Montserrat', sans-serif;
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
   background: rgba(0, 0, 0, 0.5);
