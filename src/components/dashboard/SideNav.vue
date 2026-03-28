@@ -1,9 +1,18 @@
+<!-- Side Navigation Bar -->
+
 <script setup>
 import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
 const currentRoute = computed(() => route.name);
+
+const handleLogout = () => {
+  // Placeholder for logout logic
+  alert('Logging out...');
+  router.push('/'); // Redirect to login page after logout
+};
 
 const navLinks = ref([
   { id: 'dashboard', name: 'Dashboard', path: '/dashboard', iconClass: 'fa-solid fa-house' },
@@ -12,8 +21,6 @@ const navLinks = ref([
   { id: 'about',     name: 'About Us',  path: '/dashboard/about', iconClass: 'fa-solid fa-circle-info' },
 ]);
 </script>
-
-<!-- Left side nav bar -->
 
 <template>
     <nav class="sidebar">
@@ -38,24 +45,27 @@ const navLinks = ref([
       </router-link>
     </div>
 
-    <button class="logout-btn" @click="handleLogout">
-      <i class="fa-solid fa-right-from-bracket"></i>
-    </button>
+    <div class="logout-wrapper">
+      <button class="logout-btn" @click="handleLogout">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div> 
   </nav>
 </template>
 
 <style scoped>
 .sidebar {
-  grid-area: sidebar;
-  background-color: #004d26; /* Wireframe Forest Green */
-  color: white;
+  background-color: #004d26;
+  width: 240px;
+  height: 100vh; /* Lock to screen height */
   display: flex;
-  left: 0;
-  flex-direction: column;
-  justify-content: space-between;
+  flex-direction: column; /* Stack items vertically */
   align-items: center;
-  padding: 30px 15px;
-  min-height: 100vh;
+  padding: 40px 15px;
+  box-sizing: border-box;
+  position: fixed; /* Keep it from moving */
+  left: 0;
+  top: 0;
 }
 
 /* User Profile Styling */
@@ -63,8 +73,37 @@ const navLinks = ref([
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  flex-grow: 1;
+  margin-top: 40px;
+}
+.logout-wrapper {
+  margin-top: auto; /* Safety fallback to ensure bottom alignment */
+  padding-top: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0; /* Keeps the button from getting squashed */
+}
+.profile-icon {
+  width: 50px;
+  height: 50px;
+  background-color: white; /* Make it visible */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #004d26;
+  font-size: 1.5rem;
+}
+
 .icon-circle i {
   font-size: 1.2rem;
   color: #004d26; /* Dark green icon inside white circle */
@@ -73,11 +112,6 @@ const navLinks = ref([
 .profile-icon i {
   font-size: 2rem;
   color: #666;
-}
-
-.logout-btn i {
-  font-size: 1.5rem;
-  color: white;
 }
 
 .nav-item {
@@ -106,8 +140,9 @@ const navLinks = ref([
   justify-content: center;
   transition: background-color 0.2s ease;
 }
-.nav-item.active .icon-circle { background-color: white; }
-.icon-circle img { width: 25px; height: 25px; }
+.nav-item.active .icon-circle { 
+  background-color: white; 
+}
 
 .link-text {
   font-family: 'Montserrat', sans-serif;
@@ -115,18 +150,30 @@ const navLinks = ref([
   font-size: 0.9rem;
 }
 
+.logout-btn i {
+  font-size: 1.5rem;
+  color: white;
+}
+.logout-btn:hover i {
+  color: #e25151; /* Danger red on hover */
+}
 /* Logout Button */
 .logout-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
   cursor: pointer;
-  padding: 10px;
-  border-radius: 10px;
-  transition: transform 0.2s ease;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
 }
+
 .logout-btn:hover {
   transform: scale(1.1);
   background-color: rgba(255, 255, 255, 0.1);
 }
-.logout-btn img { width: 30px; height: 30px; }
 </style>

@@ -24,9 +24,9 @@ const isLogin = ref(false);
         <div class="overlay">
           <div class="overlay-content">
             <h1>{{ isLogin ? 'Back on Track' : 'Welcome To SubTrack' }}</h1>
-            <p>{{ isLogin ? 'Login with username and password' : 'Register now and enjoy our site' }}</p>
+            <p>{{ isLogin ? 'Register now and enjoy our site' : 'Login with username and password' }}</p>
             <button @click="isLogin = !isLogin" class="ghost-btn">
-              {{ isLogin ? 'Login' : 'Register' }}
+              {{ isLogin ? 'Register' : 'Login' }}
             </button>
           </div>
         </div>
@@ -104,10 +104,16 @@ const isLogin = ref(false);
   padding: 40px;
 }
 
-.overlay h1 {
+.overlay h1{
   font-size: clamp(2rem, 4vw, 3rem); /* Responsive font that won't overflow */
   font-weight: 800;
   margin-bottom: 10px;
+  font-family: 'Montserrat', sans-serif;
+  line-height: 0.9;
+}
+
+.overlay p {
+  font-family: 'Montserrat', sans-serif;
 }
 
 .ghost-btn {

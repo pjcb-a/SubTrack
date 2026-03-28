@@ -1,4 +1,8 @@
 <script setup>
+import { ref } from 'vue';
+const name = ref('');
+const email = ref('');
+const password = ref('');
 </script>
 
 <template>

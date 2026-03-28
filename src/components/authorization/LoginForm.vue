@@ -1,7 +1,10 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import { ref } from 'vue';
 
 const router = useRouter();
+const name = ref('');
+const password = ref('');
 
 const handleLogin = () => {
   // put API/Database check here.

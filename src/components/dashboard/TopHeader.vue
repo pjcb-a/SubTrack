@@ -19,10 +19,10 @@ const isTotalView = ref(false);
 
       <div class="action-circles">
         <button class="action-icon">
-          <img src="@/assets/icons/notification.svg" alt="Notifications" />
+          <i class="fa solid fa-bell"></i>
         </button>
         <button class="action-icon">
-          <img src="@/assets/icons/help.svg" alt="Help" />
+          <i class="fa solid fa-question-circle"></i>
         </button>
       </div>
     </div>
@@ -31,13 +31,14 @@ const isTotalView = ref(false);
 
 <style scoped>
 .top-header {
-  grid-area: header;
   background-color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 30px;
   border-bottom: 1px solid #f1f1f1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .logo h1 {
@@ -91,15 +92,24 @@ const isTotalView = ref(false);
   z-index: 0;
 }
 
-.toggle-active .toggle-segment:first-child { color: #ccc; }
-.toggle-active .toggle-segment:last-child { color: #004d26; }
-.toggle-active::after { transform: translateX(100%); }
+.toggle-active .toggle-segment:first-child { 
+    color: #ccc;
+ }
+
+.toggle-active .toggle-segment:last-child { 
+    color: #004d26;
+ }
+
+.toggle-active::after {
+    transform: translateX(100%); 
+    }
 
 /* Action Icons */
 .action-circles {
   display: flex;
   gap: 10px;
 }
+
 .action-icon {
   width: 45px;
   height: 45px;
@@ -112,6 +122,13 @@ const isTotalView = ref(false);
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
-.action-icon:hover { background-color: #e0e0e0; }
-.action-icon img { width: 22px; height: 22px; }
+
+.action-icon:hover { 
+    background-color: #e0e0e0; 
+}
+
+.action-icon img { 
+    width: 22px; 
+    height: 22px; 
+}
 </style>
