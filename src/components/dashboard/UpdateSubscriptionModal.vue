@@ -80,6 +80,7 @@ const submitUpdate = () => {
         <div class="input-group">
           <label>Cycle</label>
           <select v-model="editData.cycle">
+            <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
             <option value="annual">Annual</option>
           </select>

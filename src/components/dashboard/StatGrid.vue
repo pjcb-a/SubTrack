@@ -2,74 +2,93 @@
 import { computed } from 'vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
 
-const { subscriptions } = useSubscriptions();
+const { subscriptions, currentFilter } = useSubscriptions();
 
 // 1. Sort subscriptions by nearest due date
-const upcomingSubs = computed(() => {
-  return [...subscriptions.value]
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-    .slice(0, 3);
+// Filtered List for the "Upcoming Payments" column
+const filteredSubs = computed(() => {
+  let list = [...subscriptions.value];
+  if (currentFilter.value !== 'all') {
+    list = list.filter(s => s.cycle === currentFilter.value);
+  }
+  return list.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)).slice(0, 3);
 });
 
-// 2. Calculate dynamic stats
 const totalActive = computed(() => subscriptions.value.length);
+const weeklyCount = computed(() => subscriptions.value.filter(s => s.cycle === 'weekly').length); // NEW
 const monthlyCount = computed(() => subscriptions.value.filter(s => s.cycle === 'monthly').length);
 const annualCount = computed(() => subscriptions.value.filter(s => s.cycle === 'annual').length);
 
-// 3. Calculate Progress Bar Percentages dynamically
-const monthlyPercentage = computed(() => totalActive.value === 0 ? 0 : (monthlyCount.value / totalActive.value) * 100);
-const annualPercentage = computed(() => totalActive.value === 0 ? 0 : (annualCount.value / totalActive.value) * 100);
+const weeklyPercent = computed(() => totalActive.value === 0 ? 0 : (weeklyCount.value / totalActive.value) * 100);
+const monthlyPercent = computed(() => totalActive.value === 0 ? 0 : (monthlyCount.value / totalActive.value) * 100);
+const annualPercent = computed(() => totalActive.value === 0 ? 0 : (annualCount.value / totalActive.value) * 100);
 
-/// Calculate Total Annual Spend dynamically in Peso
 const totalAnnualSpend = computed(() => {
   const total = subscriptions.value.reduce((acc, sub) => {
-    const amount = Number(sub.amount) || 0;
-    if (sub.cycle === 'monthly') return acc + (amount * 12);
-    if (sub.cycle === 'weekly') return acc + (amount * 52);
-    return acc + amount; // Annual
+    const amt = Number(sub.amount) || 0;
+    if (sub.cycle === 'weekly') return acc + (amt * 52);
+    if (sub.cycle === 'monthly') return acc + (amt * 12);
+    return acc + amt;
   }, 0);
-  
-  // Format with Philippine Locale
-  return total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return total.toLocaleString('en-PH', { minimumFractionDigits: 2 });
 });
 </script>
 
 <template>
   <div class="stats-grid">
     <div class="stat-card upcoming-payments">
-      <h3>Upcoming Payments</h3>
-
+      <h3>Upcoming ({{ currentFilter === 'all' ? 'All' : currentFilter }})</h3>
       <div class="stat-content">
-        <p v-if="upcomingSubs.length === 0" style="color: #666; font-style: italic; padding: 10px 0;">No upcoming payments.</p>
-        
-        <div v-for="sub in upcomingSubs" :key="sub.id" class="sub-item">
-          <div class="sub-icon">{{ sub.name.charAt(0).toUpperCase() }}</div>
-          <div class="sub-details">
-            <p class="sub-name">{{ sub.name }}</p>
-            <p class="sub-date">Due: {{ sub.dueDate }}</p>
-          </div>
-          <p class="sub-price">₱{{ sub.amount }}</p>
-        </div>
+        <div v-for="sub in filteredSubs" :key="sub.id" class="sub-item">
+  <div class="sub-icon">{{ sub.name ? sub.name[0].toUpperCase() : '?' }}</div>
+
+<div class="progress-container">
+  <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
+  <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
+  <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
+</div>
+  <div class="sub-details">
+    <p class="sub-name">{{ sub.name }}</p>
+    <p class="sub-date">Due: {{ sub.dueDate }}</p>
+  </div>
+
+  <p class="sub-price">₱{{ sub.amount }}</p>
+</div>
       </div>
     </div>
 
     <div class="stat-card subs-list">
-      <h3>Your Active Subs</h3>
-      <div class="stat-summary">
-        <p class="count">{{ totalActive }}</p>
-        <p class="label">Total Active</p>
-      </div>
-      <div class="progress-container">
-        <div class="progress-bar monthly" :style="{ width: monthlyPercentage + '%' }"></div>
-        <div class="progress-bar annual" :style="{ width: annualPercentage + '%' }"></div>
-      </div>
-      <p class="legend"><span>● Monthly</span> / <span>● Annual</span></p>
+  <h3>Distribution</h3>
+  <div class="stat-summary">
+    <p class="count">{{ totalActive }}</p>
+    <p class="label">Active Subs</p>
+  </div>
+  
+  <div class="progress-container">
+    <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
+    <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
+    <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
+  </div>
+
+  <div class="legend-grid">
+    <div class="legend-item">
+      <span class="dot weekly-dot"></span>
+      <span class="legend-text">Weekly ({{ weeklyCount }})</span>
     </div>
+    <div class="legend-item">
+      <span class="dot monthly-dot"></span>
+      <span class="legend-text">Monthly ({{ monthlyCount }})</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot annual-dot"></span>
+      <span class="legend-text">Annual ({{ annualCount }})</span>
+    </div>
+  </div>
+</div>
 
     <div class="stat-card total-spend">
       <h3>Total Annual Spend</h3>
       <p class="total-amount">₱{{ totalAnnualSpend }}</p>
-      <p class="comparison">Based on active subscriptions</p>
     </div>
   </div>
 </template>
@@ -180,26 +199,59 @@ const totalAnnualSpend = computed(() => {
   margin-top: 15px;
 }
 
+.progress-bar.weekly { 
+  background-color: #00a859; 
+  transition: width 0.3s ease; 
+}
+
 .progress-bar.monthly { 
-    background-color: #004d26; 
+  background-color: #004d26; 
+  transition: width 0.3s ease; 
 }
 
 .progress-bar.annual { 
-    background-color: #bcbcbc; 
+  background-color: #bcbcbc; 
+  transition: width 0.3s ease; 
 }
 
-.legend { 
-    font-size: 0.75rem; 
-    color: #999; 
-    margin-top: 5px; 
+.legend-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  text-align: left;
+  margin-top: 15px;
 }
 
-.legend span:first-child { 
-    color: #004d26; 
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.legend span:last-child { 
-    color: #bcbcbc; 
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.weekly-dot { 
+  background-color: #00a859; 
+}
+
+.monthly-dot { 
+  background-color: #004d26; 
+}
+
+.annual-dot { 
+  background-color: #bcbcbc; 
+}
+
+.legend-text {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
 }
 
 /* Block 3: Total Spend Mockup */

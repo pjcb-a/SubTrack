@@ -10,6 +10,8 @@ const subscriptions = ref([
   { id: 2, name: 'Spotify', category: 'Music', amount: 2500, cycle: 'monthly', dueDate: '2026-04-05', notifyDays: 1 },
 ]);
 
+const currentFilter = ref('all'); // 'all', 'monthly', 'yearly'
+
 export function useSubscriptions() {
   const addSubscription = (sub) => {
     subscriptions.value.push({ ...sub, id: Date.now() }); // Generates a unique ID
@@ -26,6 +28,7 @@ export function useSubscriptions() {
 
   return {
     subscriptions,
+    currentFilter,
     addSubscription,
     updateSubscription,
     deleteSubscription

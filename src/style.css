@@ -16,3 +16,15 @@ body, html, #app {
   max-width: none;
   display: block; 
 }
+
+body.dark-theme {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+body.dark-theme .stat-card {
+  background-color: #2d2d2d;
+  color: white;
+}
+body.dark-theme h1, body.dark-theme h3 {
+  color: #00ff73; /* Neon green for dark mode */
+}

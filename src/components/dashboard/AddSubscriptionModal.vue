@@ -52,6 +52,7 @@ const submitAdd = () => {
       <div class="input-group">
         <label>Cycle</label>
         <select v-model="newSub.cycle">
+            <option value="weekly">Weekly</option>
           <option value="monthly">Monthly</option>
           <option value="annual">Annual</option>
         </select>
