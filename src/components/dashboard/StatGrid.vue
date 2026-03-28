@@ -56,6 +56,7 @@ const upcomingSubs = ref([
 
 /* Base card styling */
 .stat-card {
+  font-family: 'Montserrat', sans-serif;
   flex: 1;
   min-width: 300px;
   background-color: white;
@@ -102,7 +103,12 @@ const upcomingSubs = ref([
     flex: 1; 
 }
 
-.sub-name { 
+.sub-details, .sub-name, .sub-date, .sub-price {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.sub-name{ 
+  font-family: 'Montserrat', sans-serif;
     font-weight: 700; 
     color: #333; 
 }
@@ -124,6 +130,7 @@ const upcomingSubs = ref([
 }
 
 .stat-summary .count { 
+    font-family: 'Montserrat', sans-serif;
     font-size: 2.5rem; 
     font-weight: 800; 
     color: #333; 

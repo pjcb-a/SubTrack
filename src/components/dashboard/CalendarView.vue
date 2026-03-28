@@ -53,6 +53,7 @@ const calendarDates = ref([
 <style scoped>
 .calendar-container {
   background-color: white;
+  min-width: 500px;
   border-radius: 20px;
   padding: 25px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -74,7 +75,10 @@ const calendarDates = ref([
   font-size: 1.4rem;
 }
 
-.calendar-nav { display: flex; gap: 5px; }
+.calendar-nav { 
+  display: flex; gap: 5px;
+ }
+
 .nav-btn {
   background-color: #f1f1f1;
   border: none;
@@ -84,14 +88,14 @@ const calendarDates = ref([
   font-weight: 800;
   color: #333;
 }
-.nav-btn:hover { background-color: #e0e0e0; }
+.nav-btn:hover { 
+  background-color: #e0e0e0;
+ }
 
-/* --- Calendar Grid Styling (The main block) --- */
 .calendar-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(7, 1fr); /* 7 days of the week */
-  grid-template-rows: auto repeat(6, 1fr); /* Header row + 6 rows of dates */
+  grid-template-columns: repeat(7, minmax(60px, 1fr)); /* 7 days of the week */
   gap: 8px; /* Consistent spacing between days */
 }
 

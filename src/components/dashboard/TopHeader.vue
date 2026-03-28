@@ -1,15 +1,12 @@
 <script setup>
 import { ref } from 'vue';
 
-// State for the pill toggle
 const isTotalView = ref(false);
 </script>
 
 <template>
   <header class="top-header">
-    <div class="logo">
       <h1>SubTrack</h1>
-    </div>
 
     <div class="header-controls">
       <div class="toggle-pill" :class="{ 'toggle-active': isTotalView }">
@@ -41,6 +38,12 @@ const isTotalView = ref(false);
   box-sizing: border-box;
 }
 
+.top-header h1 {
+  font-family: 'Montserrat', sans-serif;
+  color: #004d26;
+  font-weight: 800;
+  font-size: 2rem;
+}
 .logo h1 {
   font-family: 'Montserrat', sans-serif;
   color: #004d26;

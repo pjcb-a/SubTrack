@@ -155,7 +155,7 @@ const navLinks = ref([
   color: white;
 }
 .logout-btn:hover i {
-  color: #e25151; /* Danger red on hover */
+  color: #e25151; 
 }
 /* Logout Button */
 .logout-btn {
