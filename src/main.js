@@ -4,7 +4,7 @@ import App from './App.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import AuthPage from './components/authorization/AuthPage.vue'
-import Dashboard from './components/main/Dashboard.vue'
+import Dashboard from './Dashboard.vue'
 
 const routes = [
     { path: '/', component: AuthPage },
