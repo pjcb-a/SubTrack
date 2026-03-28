@@ -13,10 +13,12 @@ const selectedCycle = ref('all');
         <i class="fa solid fa-plus"></i>
         <span>Add</span>
       </button>
+
       <button class="control-btn update-btn">
         <i class="fa solid fa-edit"></i>
         <span>Update</span>
       </button>
+      
       <button class="control-btn delete-btn">
         <i class="fa solid fa-trash"></i>
         <span>Delete</span>
@@ -72,18 +74,40 @@ const selectedCycle = ref('all');
   color: #333;
   transition: all 0.2s ease;
 }
-.control-btn img { width: 18px; height: 18px; }
-.control-btn:hover { background-color: #e0e0e0; transform: translateY(-1px); }
+
+.control-btn img { 
+  width: 18px; 
+  height: 18px; 
+}
+
+.control-btn:hover { 
+  background-color: #e0e0e0; 
+  transform: translateY(-1px); 
+}
 
 /* Customizing specific buttons */
-.delete-btn { background-color: #bcbcbc; color: white; }
-.delete-btn img { filter: invert(1); } /* Make icon white */
-.delete-btn:hover { background-color: #aa3333; } /* Changes to danger red on hover */
+.delete-btn { 
+  background-color: #bcbcbc; 
+  color: white; 
+}
 
-.records-btn { padding: 10px 25px; }
+.delete-btn img { 
+  filter: invert(1); 
+} /* Make icon white */
+
+.delete-btn:hover { 
+  background-color: #aa3333; 
+} /* Changes to danger red on hover */
+
+.records-btn { 
+  padding: 10px 25px; 
+}
 
 /* Custom Payment Dropdown */
-.select-wrapper { position: relative; }
+.select-wrapper { 
+  position: relative; 
+}
+
 .payment-dropdown {
   appearance: none; /* Hide default browser arrow */
   background-color: #f1f1f1;
@@ -95,7 +119,12 @@ const selectedCycle = ref('all');
   cursor: pointer;
   color: #333;
 }
-.payment-dropdown:focus { outline: none; background-color: #e0e0e0; }
+
+.payment-dropdown:focus { 
+  outline: none; 
+  background-color: #e0e0e0; 
+}
+
 .dropdown-arrow {
   position: absolute;
   right: 15px;

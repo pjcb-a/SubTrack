@@ -14,7 +14,7 @@ const upcomingSubs = ref([
       <h3>Upcoming Payments</h3>
       <div class="stat-content">
         <div v-for="sub in upcomingSubs" :key="sub.id" class="sub-item">
-          <div class="sub-icon">N</div>
+          <div class="sub-icon"></div>
           <div class="sub-details">
             <p class="sub-name">{{ sub.name }}</p>
             <p class="sub-date">Due: {{ sub.dueDate }}</p>

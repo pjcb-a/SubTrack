@@ -56,7 +56,7 @@ const navLinks = ref([
 <style scoped>
 .sidebar {
   background-color: #004d26;
-  width: 240px;
+  width: 210px;
   height: 100vh; /* Lock to screen height */
   display: flex;
   flex-direction: column; /* Stack items vertically */
@@ -73,7 +73,7 @@ const navLinks = ref([
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 100px;
 }
 
 .nav-links {
