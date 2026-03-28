@@ -2,14 +2,16 @@
 
 <script setup>
 import { ref } from 'vue';
+import AddSubscriptionModal from './AddSubscriptionModal.vue';
 
 const selectedCycle = ref('all');
+const showAddModal = ref(false); // Controls if the modal is in the DOM
 </script>
 
 <template>
   <div class="control-bar">
     <div class="crud-group">
-      <button class="control-btn add-btn">
+      <button class="control-btn add-btn" @click="showAddModal = true">
         <i class="fa solid fa-plus"></i>
         <span>Add</span>
       </button>
@@ -41,6 +43,12 @@ const selectedCycle = ref('all');
       </button>
     </div>
   </div>
+
+  <AddSubscriptionModal
+    v-if="showAddModal"
+    @close="showAddModal = false"
+  />
+  
 </template>
 
 <style scoped>
