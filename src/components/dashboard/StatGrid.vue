@@ -12,6 +12,8 @@ const upcomingSubs = ref([
   <div class="stats-grid">
     <div class="stat-card upcoming-payments">
       <h3>Upcoming Payments</h3>
+
+      <!-- container for dynamic subscriptions -->
       <div class="stat-content">
         <div v-for="sub in upcomingSubs" :key="sub.id" class="sub-item">
           <div class="sub-icon"></div>

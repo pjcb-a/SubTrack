@@ -28,7 +28,6 @@ const selectedCycle = ref('all');
     <div class="filter-group">
       <div class="select-wrapper">
         <select v-model="selectedCycle" class="payment-dropdown">
-          <option value="all">Payment Cycle</option>
           <option value="monthly">Monthly</option>
           <option value="annual">Annual</option>
           <option value="weekly">Weekly</option>

@@ -24,10 +24,11 @@ const navLinks = ref([
 
 <template>
     <nav class="sidebar">
-    <div class="user-profile">
-      <div class="profile-icon">
+    <div class="user-profile nav-item">
+      <div class="icon-circle profile-icon">
         <i class="fa-solid fa-user"></i>
       </div>
+      <span class="link-text"> Nigga </span>
     </div>
 
     <div class="nav-links">
@@ -46,8 +47,11 @@ const navLinks = ref([
     </div>
 
     <div class="logout-wrapper">
-      <button class="logout-btn" @click="handleLogout">
-        <i class="fa-solid fa-right-from-bracket"></i>
+      <button class="logout-btn nav-item" @click="handleLogout">
+        <div class="icon-circle">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </div>
+        <span class="link-text">Logout</span>
       </button>
     </div> 
   </nav>
@@ -56,124 +60,89 @@ const navLinks = ref([
 <style scoped>
 .sidebar {
   background-color: #004d26;
-  width: 210px;
-  height: 100vh; /* Lock to screen height */
+  width: 240px;
+  height: 100vh;
   display: flex;
-  flex-direction: column; /* Stack items vertically */
-  align-items: center;
+  flex-direction: column; 
   padding: 40px 15px;
   box-sizing: border-box;
-  position: fixed; /* Keep it from moving */
-  left: 0;
-  top: 0;
 }
 
-/* User Profile Styling */
+/* 1. Reset User Profile */
 .user-profile {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 100px;
+  margin-bottom: 20px; 
 }
 
+/* 2. The Navigation Links "Spacer" */
 .nav-links {
   display: flex;
   flex-direction: column;
   gap: 15px;
   width: 100%;
-  flex-grow: 1;
-  margin-top: 40px;
+  flex-grow: 1; 
+  margin-top: 20px;
+  margin-bottom: 0; 
 }
+
+/* 3. The Logout Wrapper */
 .logout-wrapper {
-  margin-top: auto; /* Safety fallback to ensure bottom alignment */
-  padding-top: 20px;
+  margin-top: auto; 
   width: 100%;
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0; /* Keeps the button from getting squashed */
-}
-.profile-icon {
-  width: 50px;
-  height: 50px;
-  background-color: white; /* Make it visible */
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #004d26;
-  font-size: 1.5rem;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1); /* Adds a nice divider */
 }
 
-.icon-circle i {
-  font-size: 1.2rem;
-  color: #004d26; /* Dark green icon inside white circle */
-}
-
-.profile-icon i {
-  font-size: 2rem;
-  color: #666;
-}
-
+/* 4. Unified Nav Item */
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   width: 100%;
   padding: 10px;
   border-radius: 12px;
   text-decoration: none;
   color: white;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none; 
+  background: transparent;
+  font-family: 'Montserrat', sans-serif;
 }
+
 .nav-item:hover,
 .nav-item.active {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* 5. Icon Circles (Ensuring they are identical) */
 .icon-circle {
-  width: 50px;
-  height: 50px;
+  width: 45px; 
+  height: 45px;
   border-radius: 50%;
-  background-color: #f1f1f1;
+  background-color: white; 
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  flex-shrink: 0;
 }
-.nav-item.active .icon-circle { 
-  background-color: white; 
+
+.icon-circle i {
+  font-size: 1.1rem;
+  color: #004d26;
 }
 
 .link-text {
-  font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
-.logout-btn i {
-  font-size: 1.5rem;
-  color: white;
+
+.logout-btn {
+  text-align: left; 
 }
+
 .logout-btn:hover i {
   color: #e25151; 
-}
-/* Logout Button */
-.logout-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  cursor: pointer;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-
-.logout-btn:hover {
-  transform: scale(1.1);
-  background-color: rgba(255, 255, 255, 0.1);
 }
 </style>

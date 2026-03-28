@@ -6,8 +6,9 @@ const isTotalView = ref(false);
 
 <template>
   <header class="top-header">
+    <div class="logo">
       <h1>SubTrack</h1>
-
+    </div>  
     <div class="header-controls">
       <div class="toggle-pill" :class="{ 'toggle-active': isTotalView }">
         <button @click="isTotalView = false" class="toggle-segment">Monthly</button>
@@ -42,9 +43,10 @@ const isTotalView = ref(false);
   font-family: 'Montserrat', sans-serif;
   color: #004d26;
   font-weight: 800;
-  font-size: 2rem;
 }
+
 .logo h1 {
+  margin: 0;
   font-family: 'Montserrat', sans-serif;
   color: #004d26;
   font-weight: 800;
