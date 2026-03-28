@@ -7,17 +7,17 @@
     <h1>Register</h1>
     <div class="input-group">
         <label for="name">Username</label>
-        <input type="text" id="name" placeholder="Enter username"/>
+        <input type="text" id="name" v-model="name" placeholder="Enter username"/>
     </div>
 
     <div class="input-group">
         <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Enter email"/>
+        <input type="email" id="email" v-model="email" placeholder="Enter email"/>
     </div>
     
     <div class="input-group">
         <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter password" />
+        <input type="password" id="password" v-model="password" placeholder="Enter password" />
     </div>
 
     <button class="submit-btn">Register</button>
@@ -64,6 +64,7 @@
   width: 100%;
   padding: 10px;
   background: #e0e0e0;
+  color: black;
   border: 1px solid transparent;
   border-radius: 10px;
   font-family: 'Montserrat', sans-serif;
