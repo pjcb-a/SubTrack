@@ -38,12 +38,12 @@ const handleLogin = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+    font-family: 'Montserrat', sans-serif;
+
 }
 
 .form-content h1 {
-  font-family: 'Montserrat', sans-serif;
   font-weight: 800;
-  /* Reduced size so it stays inside the white area */
   font-size: clamp(3rem, 4vw, 3.2rem); 
   margin-bottom: 4rem; 
   letter-spacing: 1.5px;
@@ -59,6 +59,7 @@ const handleLogin = () => {
 }
 
 .input-group label {
+  font-family: 'Montserrat', sans-serif;
   display: block;
   padding-left: 5px;
   font-size: 0.9rem;

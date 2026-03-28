@@ -30,6 +30,7 @@ const password = ref('');
 
 <style scoped>
     .form-content {
+  font-family: 'Montserrat', sans-serif;
   width: 100%;
   max-width: 340px;
   margin: 0 auto;
