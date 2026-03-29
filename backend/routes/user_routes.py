@@ -1,24 +1,43 @@
 """
 User profile endpoints.
 
-This route group exposes lightweight user data for the currently logged-in
-browser session.
+This route group exposes lightweight user data for the current browser session.
+Unlike the write endpoints, the session check route is intentionally soft: a
+logged-out browser gets a normal JSON response instead of an error so the
+frontend can load the login screen without treating "not logged in yet" as a
+failure state.
 """
 
-from flask import Blueprint, jsonify, g
+from flask import Blueprint, jsonify, session
 
-from utils.auth import login_required
+from models import db
+from models.user import User
 
 
 user_bp = Blueprint("user", __name__, url_prefix="/api/user")
 
 
 @user_bp.get("")
-@login_required
 def get_current_user():
-    """Return the authenticated user's safe profile fields.
+    """Return session state for the current browser.
 
     Expected frontend use:
-    Header/profile widgets can call this after login to personalize the UI.
+    - app startup can check whether a session already exists
+    - logged-in UIs can read the current user without another login call
+
+    Response behavior:
+    - authenticated browsers get `{"authenticated": true, "user": {...}}`
+    - logged-out browsers get `{"authenticated": false, "user": null}`
     """
-    return jsonify({"user": g.current_user.to_dict()})
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({"authenticated": False, "user": None})
+
+    user = db.session.get(User, user_id)
+
+    if not user:
+        session.clear()
+        return jsonify({"authenticated": False, "user": None})
+
+    return jsonify({"authenticated": True, "user": user.to_dict()})
