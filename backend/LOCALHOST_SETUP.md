@@ -11,15 +11,15 @@ the Flask backend, and either SQLite or PostgreSQL.
 
 ## Project Layout
 
-- Frontend root: `/Users/austin/Documents/New project/SubTrack`
-- Backend folder: `/Users/austin/Documents/New project/SubTrack/backend`
+- Frontend root: `SubTrack/`
+- Backend folder: `SubTrack/backend/`
 
 ## 1. Frontend Setup
 
 Open a terminal in the project root:
 
 ```bash
-cd "/Users/austin/Documents/New project/SubTrack"
+cd SubTrack
 npm install
 ```
 
@@ -42,7 +42,7 @@ Use that exact URL in the browser during local development.
 Open another terminal:
 
 ```bash
-cd "/Users/austin/Documents/New project/SubTrack/backend"
+cd SubTrack/backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -88,7 +88,7 @@ createdb subtrack
 Load the schema:
 
 ```bash
-cd "/Users/austin/Documents/New project/SubTrack/backend"
+cd SubTrack/backend
 psql -U <your_postgres_user> -d subtrack -f postgres_schema.sql
 ```
 

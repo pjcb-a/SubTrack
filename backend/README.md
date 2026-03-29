@@ -43,7 +43,7 @@ These categories are inserted automatically the first time the app starts:
 1. Open a terminal in the backend folder:
 
 ```bash
-cd /Users/austin/Documents/New\ project/SubTrack/backend
+cd SubTrack/backend
 ```
 
 2. Create a virtual environment:
@@ -92,7 +92,7 @@ When you are ready to move from SQLite to PostgreSQL, keep the backend models as
 2. Run the checked-in schema file:
 
 ```bash
-psql -U postgres -d subtrack -f postgres_schema.sql
+psql -U <your_postgres_user> -d subtrack -f postgres_schema.sql
 ```
 
 3. Update the `DATABASE_URL` in `.env`.
@@ -100,7 +100,7 @@ psql -U postgres -d subtrack -f postgres_schema.sql
 Example:
 
 ```env
-DATABASE_URL=postgresql+psycopg://postgres:your_password@localhost:5432/subtrack
+DATABASE_URL=postgresql+psycopg://<your_postgres_user>:<your_password>@localhost:5432/subtrack
 ```
 
 4. Start the backend normally:
