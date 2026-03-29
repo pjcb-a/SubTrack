@@ -49,6 +49,7 @@ const toggleTheme = () => {
   padding: 20px 30px;
   border-bottom: 1px solid #f1f1f1;
   width: 100%;
+  height: 80px;
   box-sizing: border-box;
 }
 

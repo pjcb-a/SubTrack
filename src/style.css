@@ -17,14 +17,25 @@ body, html, #app {
   display: block; 
 }
 
+/* FIX UI FOR DARK MODE UI HERE */
+
 body.dark-theme {
   background-color: #1a1a1a;
   color: #ffffff;
 }
-body.dark-theme {
+
+body.dark-theme .stat-card{
   background-color: #2d2d2d;
   color: white;
 }
+
+body.dark-theme .sidebar {
+  background-color: #1a1a1a;
+}
+body.dark-theme .icon-circle i {
+  color: #1a1a1a;
+}
+
 body.dark-theme h1, body.dark-theme h3 {
   color: #00ff73; /* Neon green for dark mode */
 }

@@ -67,11 +67,12 @@ const navLinks = ref([
   padding: 40px 15px;
   box-sizing: border-box;
   border-radius: 0 18px 18px 0;
+  justify-content: space-between;
 }
 
 /* 1. Reset User Profile */
 .user-profile {
-  margin-bottom: 20px; 
+  margin-bottom: 0; 
 }
 
 /* 2. The Navigation Links "Spacer" */
@@ -80,9 +81,9 @@ const navLinks = ref([
   flex-direction: column;
   gap: 15px;
   width: 100%;
-  flex-grow: 1; 
-  margin-top: 20px;
-  margin-bottom: 0; 
+  flex-grow: 0; 
+  margin-top: auto;
+  margin-bottom: auto; 
 }
 
 /* 3. The Logout Wrapper */

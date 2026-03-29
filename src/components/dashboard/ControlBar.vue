@@ -8,7 +8,6 @@ import DeleteSubscriptionModal from './DeleteSubscriptionModal.vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
 
 const { currentFilter } = useSubscriptions(); // Bind to global state
-const selectedCycle = ref('all');
 const showAddModal = ref(false); // Controls if the modal is in the DOM
 const showUpdateModal = ref(false); // Controls if the update modal is in the DOM
 const showDeleteModal = ref(false); // Controls if the delete modal is in the DOM
