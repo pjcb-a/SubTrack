@@ -1,7 +1,9 @@
+SubTrack - Subscription Management Simplified
 # SubTrack
 
 SubTrack is a full-stack subscription tracking app built with Vue, Vite, and Flask. It helps users manage recurring payments, monitor upcoming renewals, and keep a record of deleted subscriptions through the history view.
 
+The Problem
 ## Features
 
 - User registration and login with Flask session-based authentication
@@ -20,6 +22,7 @@ SubTrack is a full-stack subscription tracking app built with Vue, Vite, and Fla
 
 ## Run Locally
 
+The Solution
 Clone the repository and open the project folder:
 
 ```bash
@@ -36,6 +39,7 @@ npm run dev
 
 Backend:
 
+Technical Necessity (Getting Started)
 ```bash
 cd backend
 python3 -m venv venv
@@ -92,6 +96,7 @@ psql -U <your_postgres_user> -d subtrack -f postgres_schema.sql
 
 After changing `backend/.env`, restart the backend:
 
+Project Navigation
 ```bash
 cd backend
 source venv/bin/activate
@@ -104,6 +109,7 @@ For backend-specific configuration details, see [backend/README.md](./backend/RE
 
 ## Project Structure
 
+    backend/: The Flask/Python API handling user authentication and subscription storage.
 - `src/components/dashboard/`: dashboard UI
 - `src/components/history/`: subscription history view
 - `src/composables/`: shared frontend state and API interaction
