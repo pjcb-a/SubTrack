@@ -187,6 +187,12 @@ const formatPaymentDate = (value) => formatLongDate(parseDateString(value));
   flex-direction: column;
   border: 1px solid var(--app-border);
   backdrop-filter: blur(16px);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.calendar-container:hover {
+  background-color: color-mix(in srgb, var(--app-surface) 96%, transparent);
+  transform: scale(1.02)
 }
 
 .calendar-header {

@@ -44,13 +44,21 @@ const dueSoonCount = computed(() => filteredSubs.value.filter((sub) => {
 const nextRenewal = computed(() => filteredSubs.value[0] ?? null);
 
 const totalAnnualSpend = computed(() => {
-  const total = subscriptions.value.reduce((acc, sub) => {
+  // Filter the list based on the active dropdown selection
+  let filteredList = [...subscriptions.value];
+  if (currentFilter.value !== 'all') {
+    filteredList = filteredList.filter(sub => sub.cycle === currentFilter.value);
+  }
+
+  //  Calculate the total for only those filtered items
+  const total = filteredList.reduce((acc, sub) => {
     const amount = Number(sub.amount) || 0;
 
+    // Calculate the impact for the selected category
     if (sub.cycle === 'weekly') {
-      return acc + (amount * 52);
+      return acc + (amount * 7);
     }
-
+ 
     if (sub.cycle === 'monthly') {
       return acc + (amount * 12);
     }
@@ -143,7 +151,7 @@ const getDueLabel = (dueDate) => {
 
   <!-- BLOCK 3: Total Spend -->
     <div class="stat-card total-spend">
-      <h3>Total Annual Spend</h3>
+      <h3>Total {{ currentFilter === 'all' ? 'All' : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1) }} Spend</h3>
       <p class="total-amount">{{ totalAnnualSpend }}</p>
       <p v-if="nextRenewal" class="comparison">
         Next renewal: {{ nextRenewal.name }} on {{ formatMonthDay(nextRenewal.dueDate) }}
@@ -162,6 +170,7 @@ const getDueLabel = (dueDate) => {
   gap: 20px;
 }
 
+/* BLOCK 1: Upcoming Payments */
 .stat-card {
   font-family: 'Montserrat', sans-serif;
   flex: 1;
@@ -174,6 +183,12 @@ const getDueLabel = (dueDate) => {
   flex-direction: column;
   border: 1px solid var(--app-border);
   backdrop-filter: blur(16px);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.stat-card:hover {
+  background-color: color-mix(in srgb, var(--app-surface) 80%, transparent);
+  transform: scale(1.02);
 }
 
 .stat-card h3 {
@@ -307,6 +322,7 @@ const getDueLabel = (dueDate) => {
   color: var(--app-text-muted);
 }
 
+/* BLOCK 2: Subscription List */
 .subs-list {
   flex: 1;
   text-align: center;
@@ -397,6 +413,7 @@ const getDueLabel = (dueDate) => {
   color: var(--app-accent);
 }
 
+/* BLOCK 3: Total Spend */
 .total-spend {
   flex: 1;
   background: var(--app-highlight-panel);
