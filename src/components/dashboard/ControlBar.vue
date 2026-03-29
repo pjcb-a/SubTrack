@@ -1,34 +1,41 @@
 <!-- Second row containing the logic for the CRUD buttons -->
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import AddSubscriptionModal from './AddSubscriptionModal.vue';
 import UpdateSubscriptionModal from './UpdateSubscriptionModal.vue';
 import DeleteSubscriptionModal from './DeleteSubscriptionModal.vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
 
-const { currentFilter } = useSubscriptions(); // Bind to global state
-const selectedCycle = ref('all');
-const showAddModal = ref(false); // Controls if the modal is in the DOM
-const showUpdateModal = ref(false); // Controls if the update modal is in the DOM
-const showDeleteModal = ref(false); // Controls if the delete modal is in the DOM
+const { subscriptions, currentFilter } = useSubscriptions();
+const showAddModal = ref(false);
+const showUpdateModal = ref(false);
+const showDeleteModal = ref(false);
+
+const visibleRecordCount = computed(() => {
+  if (currentFilter.value === 'all') {
+    return subscriptions.value.length;
+  }
+
+  return subscriptions.value.filter((sub) => sub.cycle === currentFilter.value).length;
+});
 </script>
 
 <template>
   <div class="control-bar">
     <div class="crud-group">
       <button class="control-btn add-btn" @click="showAddModal = true">
-        <i class="fa solid fa-plus"></i>
+        <i class="fa-solid fa-plus"></i>
         <span>Add</span>
       </button>
 
       <button class="control-btn update-btn" @click="showUpdateModal = true">
-        <i class="fa solid fa-edit"></i>
+        <i class="fa-solid fa-pen-to-square"></i>
         <span>Update</span>
       </button>
       
       <button class="control-btn delete-btn" @click="showDeleteModal = true">
-        <i class="fa solid fa-trash"></i>
+        <i class="fa-solid fa-trash"></i>
         <span>Delete</span>
       </button>
     </div>
@@ -44,9 +51,9 @@ const showDeleteModal = ref(false); // Controls if the delete modal is in the DO
         <span class="dropdown-arrow">▼</span>
       </div>
 
-      <button class="control-btn records-btn">
+      <button class="control-btn records-btn" type="button">
         <i class="fa-solid fa-bars"></i>
-        <span>Records</span>
+        <span>{{ visibleRecordCount }} Record{{ visibleRecordCount === 1 ? '' : 's' }}</span>
       </button>
     </div>
   </div>
@@ -74,79 +81,80 @@ const showDeleteModal = ref(false); // Controls if the delete modal is in the DO
   align-items: center;
   margin-bottom: 25px;
   padding: 0 10px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.crud-group, .filter-group {
+.crud-group,
+.filter-group {
   display: flex;
-  gap: 10px; /* Spacing between buttons */
+  gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-/* Base button styling (The pill shapes from wireframe) */
 .control-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   border: none;
-  background-color: #f1f1f1;
+  background-color: var(--app-surface-alt);
   padding: 10px 20px;
   border-radius: 20px;
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
-  color: #333;
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-soft);
   transition: all 0.2s ease;
 }
 
-.control-btn img { 
-  width: 18px; 
-  height: 18px; 
+.control-btn i {
+  font-size: 0.9rem;
 }
 
-.control-btn:hover { 
-  background-color: #004d26;
-  color: #bcbcbc; 
-  transform: translateY(-1px); 
+.control-btn:hover {
+  background-color: var(--app-accent-strong);
+  color: #f5f5f5;
+  border-color: transparent;
+  transform: translateY(-1px);
 }
 
-/* Customizing specific buttons */
-.delete-btn { 
-  background-color: #bcbcbc; 
-  color: white; 
+.delete-btn {
+  background-color: color-mix(in srgb, var(--app-danger) 22%, var(--app-surface-alt));
+  color: white;
+  border-color: transparent;
 }
 
-.delete-btn img { 
-  filter: invert(1); 
-} /* Make icon white */
-
-.delete-btn:hover { 
-  background-color: #aa3333; 
-} /* Changes to danger red on hover */
-
-.records-btn { 
-  padding: 10px 25px; 
+.delete-btn:hover {
+  background-color: var(--app-danger);
 }
 
-/* Custom Payment Dropdown */
-.select-wrapper { 
-  position: relative; 
+.records-btn {
+  padding: 10px 25px;
+}
+
+.select-wrapper {
+  position: relative;
 }
 
 .payment-dropdown {
-  appearance: none; /* Hide default browser arrow */
-  background-color: #f1f1f1;
-  border: none;
+  appearance: none;
+  background-color: var(--app-surface-alt);
+  border: 1px solid var(--app-border);
   padding: 10px 35px 10px 20px;
   border-radius: 20px;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   cursor: pointer;
-  color: #333;
+  color: var(--app-text);
+  box-shadow: var(--app-shadow-soft);
 }
 
-.payment-dropdown:focus { 
-  outline: none; 
-  background-color: #e0e0e0; 
+.payment-dropdown:focus {
+  outline: none;
+  background-color: var(--app-surface-soft);
 }
 
 .dropdown-arrow {
@@ -155,12 +163,18 @@ const showDeleteModal = ref(false); // Controls if the delete modal is in the DO
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.7rem;
-  color: #666;
-  pointer-events: none; /* Let clicks pass through to the select */
+  color: var(--app-text-muted);
+  pointer-events: none;
 }
 
 .delete-btn:hover i {
-    color: #ff4d4d;
-    transition: 0.3s ease;
+  color: #ffe5e5;
+  transition: color 0.3s ease;
+}
+
+@media (max-width: 959px) {
+  .control-bar {
+    padding: 0;
+  }
 }
 </style>

@@ -1,3 +1,10 @@
+"""
+Seed helpers for backend startup.
+
+`app.py` calls `seed_default_categories()` after creating tables so a clean
+database already has the category rows needed by subscription forms.
+"""
+
 from models import db
 from models.category import Category
 
@@ -11,8 +18,8 @@ DEFAULT_CATEGORIES = [
 ]
 
 
-# FOR ADDING DEFAULT CATEGORIES WHEN THE DATABASE IS EMPTY
 def seed_default_categories():
+    """Insert starter category rows if they do not already exist."""
     for category_data in DEFAULT_CATEGORIES:
         category = db.session.get(Category, category_data["category_id"])
 

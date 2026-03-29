@@ -1,3 +1,11 @@
+"""
+Application entry point for the Flask API.
+
+This file creates the Flask app instance, loads shared config, attaches the
+database, enables cross-origin requests from the frontend, and registers the
+route groups that expose the API consumed by the UI.
+"""
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 
@@ -9,43 +17,60 @@ from routes.user_routes import user_bp
 from utils.seed_data import seed_default_categories
 
 
-# FOR CREATING AND CONFIGURING THE FLASK APPLICATION
 def create_app():
+    """Build the Flask application used by both local dev and production.
+
+    Main responsibilities:
+    - load settings from `config.py`
+    - connect SQLAlchemy so route files can query the database
+    - allow browser requests from the frontend through CORS
+    - register API blueprints for auth, user profile, and subscriptions
+    - create tables and default categories on first startup
+
+    Frontend impact:
+    When the Vue frontend is later switched from mock data to real API calls,
+    every request will eventually enter the system through this app instance.
+    """
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # FOR CONNECTING FLASK TO THE DATABASE
+    # Makes the shared `db` object in models/__init__.py use this app's config.
     db.init_app(app)
 
-    # FOR ALLOWING THE VUE FRONTEND TO CALL THIS API
+    # Lets the frontend running on Vite/localhost call the Flask API and send
+    # session cookies. Without this, browser requests from the frontend would be
+    # blocked even if the backend is running correctly.
     CORS(
         app,
         supports_credentials=True,
         origins=app.config["CORS_ORIGINS"],
     )
 
-    # FOR REGISTERING THE API ROUTE FILES
+    # Each blueprint groups related endpoints.
+    # These routes are the backend surface that the frontend will eventually call.
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(subscription_bp)
 
-    # FOR RETURNING A JSON RESPONSE WHEN A ROUTE DOES NOT EXIST
     @app.errorhandler(404)
     def not_found(_error):
+        """Return JSON instead of HTML for missing API routes."""
         return jsonify({"error": "Route not found"}), 404
 
-    # FOR RETURNING A JSON RESPONSE WHEN THE HTTP METHOD IS WRONG
     @app.errorhandler(405)
     def method_not_allowed(_error):
+        """Return JSON when a route exists but the HTTP method is wrong."""
         return jsonify({"error": "Method not allowed"}), 405
 
-    # FOR RETURNING A JSON RESPONSE FOR SERVER ERRORS
     @app.errorhandler(500)
     def internal_server_error(_error):
+        """Rollback failed DB work so one broken request does not poison later ones."""
         db.session.rollback()
         return jsonify({"error": "Internal server error"}), 500
 
-    # FOR CREATING TABLES AND SEEDING DEFAULT CATEGORIES
+    # Initializes the database on startup so the backend can boot on a clean
+    # machine without a manual migration step. The seeded categories are later
+    # referenced by subscription creation and editing flows.
     with app.app_context():
         db.create_all()
         seed_default_categories()
@@ -53,9 +78,10 @@ def create_app():
     return app
 
 
+# Exposes the ready-to-run Flask app object used by `python app.py`.
 app = create_app()
 
 
-# FOR STARTING THE BACKEND LOCALLY
 if __name__ == "__main__":
+    # Local development server entrypoint.
     app.run(debug=True)

@@ -1,8 +1,34 @@
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '../../composables/useAuth';
+
+const router = useRouter();
 const name = ref('');
 const email = ref('');
 const password = ref('');
+const localError = ref('');
+const { register, authLoading } = useAuth();
+
+const handleRegister = async () => {
+  localError.value = '';
+
+  if (!name.value.trim() || !email.value.trim() || !password.value) {
+    localError.value = 'Username, email, and password are required.';
+    return;
+  }
+
+  try {
+    await register({
+      username: name.value.trim(),
+      email: email.value.trim().toLowerCase(),
+      password: password.value,
+    });
+    router.push('/dashboard');
+  } catch (error) {
+    localError.value = error.message;
+  }
+};
 </script>
 
 <template>
@@ -24,7 +50,11 @@ const password = ref('');
         <input type="password" id="password" v-model="password" placeholder="Enter password" />
     </div>
 
-    <button class="submit-btn">Register</button>
+    <p v-if="localError" class="form-error">{{ localError }}</p>
+
+    <button class="submit-btn" :disabled="authLoading" @click="handleRegister">
+      {{ authLoading ? 'Creating account...' : 'Register' }}
+    </button>
   </div>
 </template>
 
@@ -94,6 +124,8 @@ const password = ref('');
   font-weight: 500;
   letter-spacing: 1px;
   margin-top: 20px;
+  border: none;
+  cursor: pointer;
 }
 
 .submit-btn:hover {
@@ -101,5 +133,18 @@ const password = ref('');
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   transform: translateY(-5px);
   transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.submit-btn:disabled {
+  opacity: 0.75;
+  cursor: wait;
+}
+
+.form-error {
+  width: 100%;
+  margin-top: 10px;
+  color: #aa3333;
+  font-size: 0.9rem;
+  text-align: left;
 }
 </style>

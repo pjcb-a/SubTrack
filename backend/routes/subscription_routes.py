@@ -1,3 +1,11 @@
+"""
+Subscription CRUD and dashboard support endpoints.
+
+These routes are intended to back the dashboard cards, calendar, upcoming list,
+and summary values in the frontend once the mock store is replaced with API
+requests.
+"""
+
 from datetime import date, timedelta
 
 from flask import Blueprint, jsonify, request, g
@@ -13,8 +21,12 @@ from utils.validators import validate_subscription_payload
 subscription_bp = Blueprint("subscriptions", __name__, url_prefix="/api/subscriptions")
 
 
-# FOR FINDING ONE SUBSCRIPTION THAT BELONGS TO THE CURRENT USER
 def get_user_subscription_or_404(subscription_id, user_id):
+    """Load a subscription only if it belongs to the logged-in user.
+
+    This prevents users from reading or editing another user's subscription by
+    guessing an ID in the URL.
+    """
     subscription = Subscription.query.filter_by(
         subscription_id=subscription_id,
         user_id=user_id,
@@ -26,10 +38,15 @@ def get_user_subscription_or_404(subscription_id, user_id):
     return subscription, None
 
 
-# FOR RETURNING ALL SUBSCRIPTIONS OF THE CURRENT USER
 @subscription_bp.get("")
 @login_required
 def list_subscriptions():
+    """Return every subscription owned by the logged-in user.
+
+    Expected frontend use:
+    Dashboard tables, cards, or calendar views can call this to populate the
+    user's full subscription list.
+    """
     subscriptions = (
         Subscription.query.filter_by(user_id=g.current_user.user_id)
         .order_by(Subscription.subscription_id.desc())
@@ -43,10 +60,14 @@ def list_subscriptions():
     )
 
 
-# FOR CREATING A NEW SUBSCRIPTION
 @subscription_bp.post("")
 @login_required
 def create_subscription():
+    """Validate input, create a subscription row, and create its reminder row.
+
+    Expected frontend use:
+    The add-subscription modal should eventually POST its form data here.
+    """
     data = request.get_json(silent=True) or {}
     errors, cleaned_data = validate_subscription_payload(data, partial=False)
 
@@ -78,10 +99,15 @@ def create_subscription():
     )
 
 
-# FOR RETURNING SUBSCRIPTIONS DUE WITHIN THE NEXT 7 DAYS
 @subscription_bp.get("/upcoming")
 @login_required
 def get_upcoming_subscriptions():
+    """Return only active subscriptions due in the next 7 days.
+
+    Expected frontend use:
+    This can drive an "upcoming renewals" card without the frontend having to
+    calculate due dates by itself.
+    """
     today = date.today()
     end_date = today + timedelta(days=7)
 
@@ -110,10 +136,14 @@ def get_upcoming_subscriptions():
     )
 
 
-# FOR CALCULATING TOTAL MONTHLY SUBSCRIPTION COST
 @subscription_bp.get("/summary")
 @login_required
 def get_subscription_summary():
+    """Return summary numbers for high-level dashboard widgets.
+
+    This endpoint centralizes the billing-cycle math so the frontend does not
+    need to duplicate monthly/quarterly/yearly conversion rules.
+    """
     active_subscriptions = Subscription.query.filter_by(
         user_id=g.current_user.user_id,
         is_active=True,
@@ -134,10 +164,10 @@ def get_subscription_summary():
     )
 
 
-# FOR RETURNING ONE SUBSCRIPTION BY ID
 @subscription_bp.get("/<int:subscription_id>")
 @login_required
 def get_subscription(subscription_id):
+    """Return a single subscription for details or edit screens."""
     subscription, error_response = get_user_subscription_or_404(
         subscription_id,
         g.current_user.user_id,
@@ -149,10 +179,14 @@ def get_subscription(subscription_id):
     return jsonify({"subscription": subscription.to_dict()})
 
 
-# FOR UPDATING ONE SUBSCRIPTION BY ID
 @subscription_bp.put("/<int:subscription_id>")
 @login_required
 def update_subscription(subscription_id):
+    """Apply partial or full subscription updates for the current user.
+
+    Expected frontend use:
+    The update modal can send only changed fields or the full form payload.
+    """
     subscription, error_response = get_user_subscription_or_404(
         subscription_id,
         g.current_user.user_id,
@@ -196,10 +230,10 @@ def update_subscription(subscription_id):
     )
 
 
-# FOR DELETING ONE SUBSCRIPTION BY ID
 @subscription_bp.delete("/<int:subscription_id>")
 @login_required
 def delete_subscription(subscription_id):
+    """Delete one subscription belonging to the logged-in user."""
     subscription, error_response = get_user_subscription_or_404(
         subscription_id,
         g.current_user.user_id,

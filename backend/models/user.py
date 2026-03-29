@@ -3,8 +3,13 @@ from datetime import datetime
 from models import db
 
 
-# FOR STORING USER ACCOUNT DATA
 class User(db.Model):
+    """Stores account data for authentication and ownership checks.
+
+    System role:
+    Routes use this table to register users, log them in, and scope
+    subscriptions to the correct account.
+    """
     __tablename__ = "users"
 
     user_id = db.Column(db.Integer, primary_key=True)
@@ -19,8 +24,12 @@ class User(db.Model):
         cascade="all, delete-orphan",
     )
 
-    # FOR SENDING SAFE USER DATA BACK AS JSON
     def to_dict(self):
+        """Return only safe user fields for the API response.
+
+        `password_hash` is intentionally excluded so it never leaks to the
+        frontend or any API consumer.
+        """
         return {
             "user_id": self.user_id,
             "username": self.username,

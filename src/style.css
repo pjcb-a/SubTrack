@@ -1,30 +1,84 @@
+:root {
+  color-scheme: light;
+  --app-bg: #f3f5f1;
+  --app-surface: #ffffff;
+  --app-surface-alt: #f1f4ef;
+  --app-surface-soft: #e7ede8;
+  --app-border: #dde6df;
+  --app-text: #1a221d;
+  --app-text-muted: #667067;
+  --app-heading: #0f3825;
+  --app-accent: #0d6a45;
+  --app-accent-strong: #004d26;
+  --app-accent-soft: rgba(0, 77, 38, 0.1);
+  --app-sidebar-bg: linear-gradient(180deg, #004d26 0%, #0a5e35 100%);
+  --app-sidebar-text: #f6fbf8;
+  --app-sidebar-hover: rgba(255, 255, 255, 0.12);
+  --app-icon-surface: #ffffff;
+  --app-icon-text: #004d26;
+  --app-danger: #aa3333;
+  --app-danger-strong: #882222;
+  --app-highlight-panel: linear-gradient(145deg, #004d26 0%, #0c6b44 52%, #0f5132 100%);
+  --app-shadow: 0 16px 36px rgba(17, 24, 20, 0.08);
+  --app-shadow-soft: 0 10px 24px rgba(17, 24, 20, 0.06);
+}
+
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box; /* Ensures padding doesn't break widths */
+  box-sizing: border-box;
 }
 
-body, html, #app {
+html,
+body,
+#app {
   width: 100%;
   height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Locks the main window */
+  overflow: hidden;
+}
+
+html,
+body {
+  background: var(--app-bg);
+  color: var(--app-text);
+  transition:
+    background 0.28s ease,
+    color 0.28s ease,
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
 }
 
 #app {
   max-width: none;
-  display: block; 
+  display: block;
 }
 
 body.dark-theme {
-  background-color: #1a1a1a;
-  color: #ffffff;
-}
-body.dark-theme {
-  background-color: #2d2d2d;
-  color: white;
-}
-body.dark-theme h1, body.dark-theme h3 {
-  color: #00ff73; /* Neon green for dark mode */
+  color-scheme: dark;
+  --app-bg:
+    radial-gradient(circle at top left, rgba(78, 120, 96, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(24, 54, 41, 0.22), transparent 24%),
+    linear-gradient(180deg, #09100d 0%, #0d1512 48%, #101815 100%);
+  --app-surface: #111917;
+  --app-surface-alt: #17211d;
+  --app-surface-soft: #1d2a25;
+  --app-border: #25332d;
+  --app-text: #e8efe9;
+  --app-text-muted: #97a59d;
+  --app-heading: #f4f8f5;
+  --app-accent: #58b784;
+  --app-accent-strong: #3e9868;
+  --app-accent-soft: rgba(88, 183, 132, 0.16);
+  --app-sidebar-bg: linear-gradient(180deg, #0d1512 0%, #12201a 100%);
+  --app-sidebar-text: #eef5f0;
+  --app-sidebar-hover: rgba(88, 183, 132, 0.16);
+  --app-icon-surface: #1a2721;
+  --app-icon-text: #bfe8cf;
+  --app-danger: #d56b6b;
+  --app-danger-strong: #be5656;
+  --app-highlight-panel: linear-gradient(145deg, #183226 0%, #1f4333 45%, #10231a 100%);
+  --app-shadow: 0 22px 52px rgba(0, 0, 0, 0.34);
+  --app-shadow-soft: 0 14px 30px rgba(0, 0, 0, 0.26);
 }

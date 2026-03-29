@@ -17,6 +17,7 @@ const editData = ref({
   dueDate: '',
   notifyDays: 3
 });
+const submitError = ref('');
 
 // Watch for changes: When the user selects a subscription from the dropdown,
 // automatically fill the form fields with that subscription's current data.
@@ -33,18 +34,24 @@ watch(selectedId, (newId) => {
   }
 });
 
-const submitUpdate = () => {
+const submitUpdate = async () => {
+  submitError.value = '';
+
   if (!selectedId.value) {
-    alert("Please select a subscription to update.");
+    submitError.value = 'Please select a subscription to update.';
     return;
   }
   if (!editData.value.name || !editData.value.amount || !editData.value.dueDate) {
-    alert("Please fill in all required fields.");
+    submitError.value = 'Please fill in all required fields.';
     return;
   }
   
-  // Send the updated data to the global state
-  updateSubscription(selectedId.value, { ...editData.value });
+  try {
+    await updateSubscription(selectedId.value, { ...editData.value });
+  } catch (error) {
+    submitError.value = error.message;
+    return;
+  }
   
   // Close the modal
   emit('close');
@@ -95,6 +102,8 @@ const submitUpdate = () => {
         <p>Please select a subscription above to view its details.</p>
       </div>
 
+      <p v-if="submitError" class="form-error">{{ submitError }}</p>
+
       <div class="modal-actions">
         <button class="cancel-btn" @click="emit('close')">Cancel</button>
         <button class="save-btn" @click="submitUpdate" :disabled="!selectedId">Update</button>
@@ -106,10 +115,10 @@ const submitUpdate = () => {
 <style scoped>
 /* These styles are identical to your AddModal for UI consistency */
 .modal-overlay {
-    font-family: 'Montserrat', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(5, 10, 8, 0.56);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -117,14 +126,16 @@ const submitUpdate = () => {
 }
 
 .modal-card {
-  background: white;
+  background: var(--app-surface);
+  color: var(--app-text);
   padding: 30px;
   border-radius: 15px;
   width: 400px;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: var(--app-shadow);
+  border: 1px solid var(--app-border);
 }
 
 .input-group {
@@ -134,30 +145,32 @@ const submitUpdate = () => {
 }
 
 .highlight-group {
-  background-color: #f8f8f8;
+  background-color: var(--app-surface-alt);
   padding: 15px;
   border-radius: 10px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--app-border);
   margin-bottom: 10px;
 }
 
 .select-target {
   font-weight: 600;
-  color: #004d26;
+  color: var(--app-heading);
 }
 
 .input-group label {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--app-text);
 }
 
 .input-group input, .input-group select {
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   margin-top: 5px;
   font-family: inherit;
+  background: var(--app-surface-alt);
+  color: var(--app-text);
 }
 
 .form-fields {
@@ -169,7 +182,7 @@ const submitUpdate = () => {
 .empty-state {
   text-align: center;
   padding: 20px;
-  color: #666;
+  color: var(--app-text-muted);
   font-style: italic;
 }
 
@@ -180,9 +193,14 @@ const submitUpdate = () => {
   margin-top: 15px;
 }
 
-.save-btn { background: #004d26; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
-.cancel-btn { background: #bcbcbc; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;}
-.save-btn:hover:not(:disabled) { background: #00361a; }
-.cancel-btn:hover { background: #a0a0a0; }
-.save-btn:disabled { background: #a3c4b3; cursor: not-allowed; }
+.form-error {
+  color: #aa3333;
+  font-size: 0.9rem;
+}
+
+.save-btn { background: var(--app-accent-strong); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+.cancel-btn { background: var(--app-surface-soft); color: var(--app-text); padding: 10px 20px; border-radius: 8px; border: 1px solid var(--app-border); cursor: pointer; font-weight: 600;}
+.save-btn:hover:not(:disabled) { background: var(--app-accent); }
+.cancel-btn:hover { background: var(--app-surface-alt); }
+.save-btn:disabled { background: color-mix(in srgb, var(--app-accent-strong) 40%, var(--app-surface-soft)); cursor: not-allowed; }
 </style>

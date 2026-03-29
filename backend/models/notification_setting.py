@@ -1,8 +1,13 @@
 from models import db
 
 
-# FOR STORING REMINDER SETTINGS FOR ONE SUBSCRIPTION
 class NotificationSetting(db.Model):
+    """Stores reminder preferences attached to exactly one subscription.
+
+    System role:
+    This model lets the backend keep notification rules separate from the main
+    subscription row while still returning them together in API responses.
+    """
     __tablename__ = "notification_settings"
 
     notification_id = db.Column(db.Integer, primary_key=True)
@@ -20,8 +25,8 @@ class NotificationSetting(db.Model):
         back_populates="notification_setting",
     )
 
-    # FOR SENDING NOTIFICATION SETTING DATA BACK AS JSON
     def to_dict(self):
+        """Serialize reminder settings for subscription API responses."""
         return {
             "notification_id": self.notification_id,
             "subscription_id": self.subscription_id,

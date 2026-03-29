@@ -6,10 +6,13 @@ const emit = defineEmits(['close']);
 const { subscriptions, deleteSubscription } = useSubscriptions();
 
 const selectedId = ref('');
+const submitError = ref('');
 
-const confirmDelete = () => {
+const confirmDelete = async () => {
+  submitError.value = '';
+
   if (!selectedId.value) {
-    alert("Please select a subscription to delete.");
+    submitError.value = 'Please select a subscription to delete.';
     return;
   }
 
@@ -17,7 +20,12 @@ const confirmDelete = () => {
   
   // Standard confirmation for safety
   if (confirm(`Are you sure you want to delete ${subToDelete.name}?`)) {
-    deleteSubscription(selectedId.value);
+    try {
+      await deleteSubscription(selectedId.value);
+    } catch (error) {
+      submitError.value = error.message;
+      return;
+    }
     emit('close');
   }
 };
@@ -43,6 +51,8 @@ const confirmDelete = () => {
         </select>
       </div>
 
+      <p v-if="submitError" class="form-error">{{ submitError }}</p>
+
       <div class="modal-actions">
         <button class="cancel-btn" @click="emit('close')">Cancel</button>
         <button 
@@ -62,7 +72,7 @@ const confirmDelete = () => {
   font-family: 'Montserrat', sans-serif;
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(5, 10, 8, 0.56);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -70,21 +80,23 @@ const confirmDelete = () => {
 }
 
 .modal-card {
-  background: white;
+  background: var(--app-surface);
+  color: var(--app-text);
   padding: 30px;
   border-radius: 15px;
   width: 400px;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: var(--app-shadow);
+  border: 1px solid var(--app-border);
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #aa3333;
+  color: var(--app-danger);
 }
 
 .warning-icon {
@@ -93,7 +105,7 @@ const confirmDelete = () => {
 
 .modal-instruction {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--app-text-muted);
   line-height: 1.4;
 }
 
@@ -111,10 +123,11 @@ const confirmDelete = () => {
 
 .delete-select {
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   font-family: 'Montserrat', sans-serif;
-  background-color: #f9f9f9;
+  background-color: var(--app-surface-alt);
+  color: var(--app-text);
 }
 
 .modal-actions {
@@ -124,18 +137,23 @@ const confirmDelete = () => {
   margin-top: 10px;
 }
 
+.form-error {
+  color: #aa3333;
+  font-size: 0.9rem;
+}
+
 .cancel-btn {
-  background: #bcbcbc;
-  color: white;
+  background: var(--app-surface-soft);
+  color: var(--app-text);
   padding: 10px 20px;
   border-radius: 8px;
-  border: none;
+  border: 1px solid var(--app-border);
   cursor: pointer;
   font-weight: 600;
 }
 
 .delete-confirm-btn {
-  background: #aa3333;
+  background: var(--app-danger);
   color: white;
   padding: 10px 20px;
   border-radius: 8px;
@@ -146,7 +164,7 @@ const confirmDelete = () => {
 }
 
 .delete-confirm-btn:hover:not(:disabled) {
-  background: #882222;
+  background: var(--app-danger-strong);
 }
 
 .delete-confirm-btn:disabled {

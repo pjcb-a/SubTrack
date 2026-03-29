@@ -5,15 +5,33 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import AuthPage from './components/authorization/AuthPage.vue'
 import Dashboard from './Dashboard.vue'
+import { useAuth } from './composables/useAuth'
+import { useSubscriptions } from './composables/useSubscriptions'
 
 const routes = [
-    { path: '/', component: AuthPage },
-    { path: '/dashboard', component: Dashboard }
+    { path: '/', component: AuthPage, meta: { guestOnly: true } },
+    { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes
+})
+
+router.beforeEach(async (to) => {
+    const { currentUser, restoreSession } = useAuth()
+    const { resetSubscriptionStore } = useSubscriptions()
+
+    await restoreSession()
+
+    if (to.meta.requiresAuth && !currentUser.value) {
+        resetSubscriptionStore()
+        return '/'
+    }
+
+    if (to.meta.guestOnly && currentUser.value) {
+        return '/dashboard'
+    }
 })
 
 const app = createApp(App)
