@@ -100,7 +100,7 @@ const totalAnnualSpend = computed(() => {
 
   <!-- BLOCK 3: Total Spend -->
     <div class="stat-card total-spend">
-      <h3>Total {{ currentFilter === 'all' ? 'All' : currentFilter }} Spend</h3>
+      <h3>Total {{ currentFilter === 'all' ? 'All' : currentFilter[0].toUpperCase() + currentFilter.slice(1) }} Spend</h3>
       <p class="total-amount">₱{{ totalAnnualSpend }}</p>
       <p class="comparison">
     {{ currentFilter === 'all' ? 'Across all categories' : 'Filtered by ' + currentFilter }}

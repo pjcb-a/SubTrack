@@ -18,7 +18,7 @@ body, html, #app {
 }
 
 /* FIX UI FOR DARK MODE UI HERE */
-
+/* 
 body.dark-theme {
   background-color: #1a1a1a;
   color: #ffffff;
@@ -38,4 +38,4 @@ body.dark-theme .icon-circle i {
 
 body.dark-theme h1, body.dark-theme h3 {
   color: #00ff73; 
-}
+} */

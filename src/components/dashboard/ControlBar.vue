@@ -43,10 +43,7 @@ const showDeleteModal = ref(false); // Controls if the delete modal is in the DO
         <span class="dropdown-arrow">▼</span>
       </div>
 
-      <button class="control-btn records-btn">
-        <i class="fa-solid fa-bars"></i>
-        <span>Records</span>
-      </button>
+      
     </div>
   </div>
 
@@ -121,10 +118,6 @@ const showDeleteModal = ref(false); // Controls if the delete modal is in the DO
 .delete-btn:hover { 
   background-color: #aa3333; 
 } /* Changes to danger red on hover */
-
-.records-btn { 
-  padding: 10px 25px; 
-}
 
 /* Custom Payment Dropdown */
 .select-wrapper { 
