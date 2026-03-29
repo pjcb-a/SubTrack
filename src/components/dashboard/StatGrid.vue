@@ -63,6 +63,10 @@ const totalAnnualSpend = computed(() => {
       return acc + (amount * 12);
     }
 
+    if(sub.cycle === 'annual') {
+      return acc + amount;
+    }
+
     return acc + amount;
   }, 0);
 
