@@ -24,17 +24,27 @@ const monthlyPercent = computed(() => totalActive.value === 0 ? 0 : (monthlyCoun
 const annualPercent = computed(() => totalActive.value === 0 ? 0 : (annualCount.value / totalActive.value) * 100);
 
 const totalAnnualSpend = computed(() => {
-  const total = subscriptions.value.reduce((acc, sub) => {
+  // 1. Filter the subscriptions based on the current dropdown selection
+  let filteredList = [...subscriptions.value];
+  if (currentFilter.value !== 'all') {
+    filteredList = filteredList.filter(s => s.cycle === currentFilter.value);
+  }
+
+  // 2. Calculate total for the filtered list
+  const total = filteredList.reduce((acc, sub) => {
     const amt = Number(sub.amount) || 0;
+    // We still calculate the ANNUAL impact of these specific subs
     if (sub.cycle === 'weekly') return acc + (amt * 52);
     if (sub.cycle === 'monthly') return acc + (amt * 12);
     return acc + amt;
   }, 0);
+
   return total.toLocaleString('en-PH', { minimumFractionDigits: 2 });
 });
 </script>
 
 <template>
+  <!-- BLOCK 1: Upcoming Payments -->
   <div class="stats-grid">
     <div class="stat-card upcoming-payments">
       <h3>Upcoming ({{ currentFilter === 'all' ? 'All' : currentFilter }})</h3>
@@ -42,55 +52,61 @@ const totalAnnualSpend = computed(() => {
         <div v-for="sub in filteredSubs" :key="sub.id" class="sub-item">
       <div class="sub-icon">{{ sub.name ? sub.name[0].toUpperCase() : '?' }}</div>
 
-<div class="progress-container">
-  <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
-  <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
-  <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
-</div>
-  <div class="sub-details">
-    <p class="sub-name">{{ sub.name }}</p>
-    <p class="sub-date">Due: {{ sub.dueDate }}</p>
-  </div>
+          <div class="progress-container">
+                <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
+                <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
+                <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
+          </div>
 
-  <p class="sub-price">₱{{ sub.amount }}</p>
-</div>
+          <div class="sub-details">
+            <p class="sub-name">{{ sub.name }}</p>
+            <p class="sub-date">Due: {{ sub.dueDate }}</p>
+          </div>
+
+          <p class="sub-price">₱{{ sub.amount }}</p>
+        </div>
       </div>
     </div>
 
+    <!-- BLOCK 2: Distribution -->
     <div class="stat-card subs-list">
-  <h3>Distribution</h3>
-  <div class="stat-summary">
-    <p class="count">{{ totalActive }}</p>
-    <p class="label">Active Subs</p>
-  </div>
-  
-  <div class="progress-container">
-    <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
-    <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
-    <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
-  </div>
+        <h3>Distribution</h3>
+        <div class="stat-summary">
+          <p class="count">{{ totalActive }}</p>
+          <p class="label">Active Subs</p>
+        </div>
+        
+        <div class="progress-container">
+          <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
+          <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
+          <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
+        </div>
 
-  <div class="legend-grid">
-    <div class="legend-item">
-      <span class="dot weekly-dot"></span>
-      <span class="legend-text">Weekly ({{ weeklyCount }})</span>
-    </div>
-    <div class="legend-item">
-      <span class="dot monthly-dot"></span>
-      <span class="legend-text">Monthly ({{ monthlyCount }})</span>
-    </div>
-    <div class="legend-item">
-      <span class="dot annual-dot"></span>
-      <span class="legend-text">Annual ({{ annualCount }})</span>
-    </div>
-  </div>
-</div>
+          <div class="legend-grid">
+            <div class="legend-item">
+              <span class="dot weekly-dot"></span>
+              <span class="legend-text">Weekly ({{ weeklyCount }})</span>
+            </div>
+            <div class="legend-item">
+              <span class="dot monthly-dot"></span>
+              <span class="legend-text">Monthly ({{ monthlyCount }})</span>
+            </div>
+            <div class="legend-item">
+              <span class="dot annual-dot"></span>
+              <span class="legend-text">Annual ({{ annualCount }})</span>
+            </div>
+          </div>
+      </div>
 
+  <!-- BLOCK 3: Total Spend -->
     <div class="stat-card total-spend">
-      <h3>Total Annual Spend</h3>
+      <h3>Total {{ currentFilter === 'all' ? 'All' : currentFilter }} Spend</h3>
       <p class="total-amount">₱{{ totalAnnualSpend }}</p>
+      <p class="comparison">
+    {{ currentFilter === 'all' ? 'Across all categories' : 'Filtered by ' + currentFilter }}
+  </p>
     </div>
-  </div>
+</div>
 </template>
 
 <style scoped>
@@ -102,7 +118,7 @@ const totalAnnualSpend = computed(() => {
   gap: 20px; /* Spacing between the stacked blocks */
 }
 
-/* Base card styling */
+  /* BLOCK 1: Upcoming Payments */
 .stat-card {
   font-family: 'Montserrat', sans-serif;
   flex: 1;
@@ -113,6 +129,12 @@ const totalAnnualSpend = computed(() => {
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+
+}
+
+.stat-card:hover {
+  transform: scale(1.02);
 }
 
 .stat-card h3 {
@@ -124,7 +146,6 @@ const totalAnnualSpend = computed(() => {
   padding-bottom: 5px;
 }
 
-/* Block 1: Upcoming Payments Mockup */
 .upcoming-payments { 
     flex: 1.5; 
 }
@@ -135,7 +156,7 @@ const totalAnnualSpend = computed(() => {
   padding-right: 8px; /* Space for the scrollbar */
 }
 
-/* 2. Make the scrollbar look pretty (Webkit browsers like Chrome/Edge/Safari) */
+/* Make the scrollbar look pretty (Webkit browsers like Chrome/Edge/Safari) */
 .upcoming-payments .stat-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -202,6 +223,12 @@ const totalAnnualSpend = computed(() => {
 .subs-list { 
     flex: 1; 
     text-align: center; 
+    transition: background-color 0.3s ease, transform 0.3s ease;
+
+}
+
+.subs-list:hover {
+    transform: scale(1.02);
 }
 
 .stat-summary .count { 
@@ -289,7 +316,12 @@ const totalAnnualSpend = computed(() => {
     display: flex; flex-direction: 
     column; justify-content: center; 
     align-items: center;
+    transition: background-color 0.3s ease, transform 0.3s ease;
  }
+
+ .total-spend:hover {
+  transform: scale(1.02);
+}
 
 .total-spend h3 { 
     color: white; 
