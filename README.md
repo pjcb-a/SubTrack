@@ -1,5 +1,82 @@
-# Vue 3 + Vite
+💳 SubTrack - Subscription Management Simplified
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+SubTrack is a full-stack dashboard designed to help users take control of their recurring expenses. By centralizing subscription data, it provides clarity on spending habits and ensures you never get surprised by a renewal again.
+🚀 The Problem
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+In the modern digital economy, "subscription fatigue" is real. Users often lose track of:
+
+    Hidden Costs: Small monthly fees that add up to significant annual drains.
+
+    Renewal Surprises: Forgetting when a trial ends or an annual fee is due.
+
+    Waste: Paying for services that are no longer being used because they are "out of sight, out of mind."
+
+💡 The Solution
+
+SubTrack negates these issues by providing a unified command center. It transforms raw subscription data into actionable insights through:
+
+    Dynamic Filtering: Instantly view costs by cycle (Weekly, Monthly, Annual).
+
+    Visual Distribution: See exactly how your budget is split across different payment frequencies.
+
+    Proactive Tracking: A dedicated "Upcoming Payments" list that highlights renewals due in the next 7 days.
+
+👤 User Stories
+Role	Requirement	Goal
+User	I want to add my Netflix, Spotify, and Gym memberships.	To see all my recurring costs in one list.
+User	I want to filter my dashboard by "Monthly" or "Annual" cycles.	To understand my short-term vs. long-term budget impact.
+User	I want a Dark Mode toggle.	To comfortably manage my finances at night without eye strain.
+User	I want to see a total annual spend calculation.	To realize the true yearly cost of my combined subscriptions.
+User	I want to see which payments are "Due Today" or "Overdue".	To ensure I have enough balance in my accounts for upcoming charges.
+🛠️ Technical Necessity (Getting Started)
+
+To run the frontend and interact with the backend features your team has implemented, you need the following setup:
+Prerequisites
+
+    Node.js (v16+)
+
+    Python 3.8+ (for the backend API)
+
+Frontend Installation
+
+    Navigate to the root directory.
+
+    Install dependencies:
+    Bash
+
+    npm install
+
+    Start the development server:
+    Bash
+
+    npm run dev
+
+Backend Installation
+
+    Navigate to the /backend folder.
+
+    Create and activate a virtual environment:
+    Bash
+
+    python3 -m venv venv
+    source venv/bin/activate
+
+    Install requirements:
+    Bash
+
+    pip install -r requirements.txt
+
+    Run the server:
+    Bash
+
+    python app.py
+
+📂 Project Navigation
+
+    src/components/dashboard/: Contains the core UI blocks like StatGrid.vue (the main data display) and ControlBar.vue (the action/filter hub).
+
+    src/composables/: Logic for managing state, specifically useSubscriptions.js which syncs data across components.
+
+    src/style.css: The global design system, including the Light and Dark theme variables.
+
+    backend/: The Flask/Python API handling user authentication and subscription storage.
