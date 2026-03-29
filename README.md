@@ -1,6 +1,7 @@
 💳 SubTrack - Subscription Management Simplified
 
 SubTrack is a full-stack dashboard designed to help users take control of their recurring expenses. By centralizing subscription data, it provides clarity on spending habits and ensures you never get surprised by a renewal again.
+
 🚀 The Problem
 
 In the modern digital economy, "subscription fatigue" is real. Users often lose track of:
@@ -21,16 +22,9 @@ SubTrack negates these issues by providing a unified command center. It transfor
 
     Proactive Tracking: A dedicated "Upcoming Payments" list that highlights renewals due in the next 7 days.
 
-👤 User Stories
-Role	Requirement	Goal
-User	I want to add my Netflix, Spotify, and Gym memberships.	To see all my recurring costs in one list.
-User	I want to filter my dashboard by "Monthly" or "Annual" cycles.	To understand my short-term vs. long-term budget impact.
-User	I want a Dark Mode toggle.	To comfortably manage my finances at night without eye strain.
-User	I want to see a total annual spend calculation.	To realize the true yearly cost of my combined subscriptions.
-User	I want to see which payments are "Due Today" or "Overdue".	To ensure I have enough balance in my accounts for upcoming charges.
 🛠️ Technical Necessity (Getting Started)
 
-To run the frontend and interact with the backend features your team has implemented, you need the following setup:
+To run the frontend and interact with the backend features implemented, you need the following setup:
 Prerequisites
 
     Node.js (v16+)
