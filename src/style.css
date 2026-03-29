@@ -1,20 +1,58 @@
+:root {
+  color-scheme: light;
+  --app-bg: #f3f5f1;
+  --app-surface: #ffffff;
+  --app-surface-alt: #f1f4ef;
+  --app-surface-soft: #e7ede8;
+  --app-border: #dde6df;
+  --app-text: #1a221d;
+  --app-text-muted: #667067;
+  --app-heading: #0f3825;
+  --app-accent: #0d6a45;
+  --app-accent-strong: #004d26;
+  --app-accent-soft: rgba(0, 77, 38, 0.1);
+  --app-sidebar-bg: linear-gradient(180deg, #004d26 0%, #0a5e35 100%);
+  --app-sidebar-text: #f6fbf8;
+  --app-sidebar-hover: rgba(255, 255, 255, 0.12);
+  --app-icon-surface: #ffffff;
+  --app-icon-text: #004d26;
+  --app-danger: #aa3333;
+  --app-danger-strong: #882222;
+  --app-highlight-panel: linear-gradient(145deg, #004d26 0%, #0c6b44 52%, #0f5132 100%);
+  --app-shadow: 0 16px 36px rgba(17, 24, 20, 0.08);
+  --app-shadow-soft: 0 10px 24px rgba(17, 24, 20, 0.06);
+}
+
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box; /* Ensures padding doesn't break widths */
+  box-sizing: border-box;
 }
 
-body, html, #app {
+html,
+body,
+#app {
   width: 100%;
   height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Locks the main window */
+  overflow: hidden;
+}
+
+html,
+body {
+  background: var(--app-bg);
+  color: var(--app-text);
+  transition:
+    background 0.28s ease,
+    color 0.28s ease,
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
 }
 
 #app {
   max-width: none;
-  display: block; 
+  display: block;
 }
 
 /* FIX UI FOR DARK MODE UI HERE */
@@ -23,19 +61,10 @@ body.dark-theme {
   background-color: #1a1a1a;
   color: #ffffff;
 }
-
-body.dark-theme .stat-card{
+body.dark-theme {
   background-color: #2d2d2d;
   color: white;
 }
-
-body.dark-theme .sidebar {
-  background-color: #1a1a1a;
-}
-body.dark-theme .icon-circle i {
-  color: #1a1a1a;
-}
-
 body.dark-theme h1, body.dark-theme h3 {
-  color: #00ff73; 
+  color: #00ff73; /* Neon green for dark mode 
 } */

@@ -1,3 +1,11 @@
+"""
+Centralized runtime settings for the backend.
+
+`app.py` imports `Config` from here so the whole backend reads environment
+values from one place. The CORS settings in this file directly affect whether
+the frontend browser can call the API.
+"""
+
 import os
 
 from dotenv import load_dotenv
@@ -7,8 +15,13 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 
-# FOR READING ALLOWED FRONTEND ORIGINS FROM THE ENVIRONMENT
 def get_cors_origins():
+    """Return the list of frontend URLs allowed to access the API.
+
+    This is consumed by Flask-CORS in `app.py`. If the frontend runs on a URL
+    that is not listed here, browser requests from the UI will fail even when
+    the endpoint itself works.
+    """
     cors_value = os.getenv(
         "CORS_ORIGINS",
         "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000",
@@ -16,8 +29,14 @@ def get_cors_origins():
     return [origin.strip() for origin in cors_value.split(",") if origin.strip()]
 
 
-# FOR STORING THE MAIN FLASK SETTINGS
 class Config:
+    """Flask config object loaded by `app.config.from_object(Config)`.
+
+    System effect:
+    - `SECRET_KEY` secures the Flask session cookie used after login
+    - `SQLALCHEMY_DATABASE_URI` chooses which database stores app data
+    - `CORS_ORIGINS` controls which frontend hosts can talk to the backend
+    """
     SECRET_KEY = os.getenv("SECRET_KEY", "subtrack-dev-secret")
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",

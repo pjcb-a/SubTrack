@@ -1,8 +1,18 @@
 from models import db
+from utils.subscription_utils import get_next_due_date
 
 
-# FOR STORING EACH USER SUBSCRIPTION
 class Subscription(db.Model):
+    """Main business record for a tracked subscription.
+
+    System role:
+    This table powers the dashboard, summaries, due-date calculations, and
+    CRUD routes.
+
+    Frontend role:
+    When the frontend is connected, the dashboard cards, calendar, and edit
+    forms will be driven by the JSON returned from `to_dict()`.
+    """
     __tablename__ = "subscriptions"
 
     subscription_id = db.Column(db.Integer, primary_key=True)
@@ -28,8 +38,14 @@ class Subscription(db.Model):
         cascade="all, delete-orphan",
     )
 
-    # FOR SENDING SUBSCRIPTION DATA BACK AS JSON
     def to_dict(self):
+        """Return a frontend-friendly JSON version of a subscription.
+
+        This flattens related data such as category name and notification
+        settings so the UI can render one object without making extra requests.
+        """
+        next_due_date = get_next_due_date(self)
+
         return {
             "subscription_id": self.subscription_id,
             "user_id": self.user_id,
@@ -39,6 +55,7 @@ class Subscription(db.Model):
             "amount": float(self.amount),
             "billing_cycle": self.billing_cycle,
             "start_date": self.start_date.isoformat(),
+            "next_due_date": next_due_date.isoformat() if next_due_date else None,
             "due_day": self.due_day,
             "is_active": self.is_active,
             "notification_setting": (

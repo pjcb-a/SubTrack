@@ -1,21 +1,55 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
-const isTotalView = ref(false);
-const isDarkMode = ref(false); // Default to light mode
+const props = defineProps({
+  sidebarCollapsed: {
+    type: Boolean,
+    default: true,
+  },
+  showSidebarToggle: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+defineEmits(['toggle-sidebar']);
+
+const DARK_MODE_STORAGE_KEY = 'subtrack-dark-mode';
+const isDarkMode = ref(false);
+
+const applyTheme = (value) => {
+  document.body.classList.toggle('dark-theme', value);
+  window.localStorage.setItem(DARK_MODE_STORAGE_KEY, String(value));
+};
 
 const toggleTheme = () => {
   isDarkMode.value = !isDarkMode.value;
-  // Apply the class to the body so the whole app can respond to the theme
-  document.body.classList.toggle('dark-theme', isDarkMode.value);
+  applyTheme(isDarkMode.value);
 };
+
+onMounted(() => {
+  isDarkMode.value = window.localStorage.getItem(DARK_MODE_STORAGE_KEY) === 'true';
+  applyTheme(isDarkMode.value);
+});
 </script>
 
 <template>
   <header class="top-header">
-    <div class="logo">
-      <h1>SubTrack</h1>
-    </div>  
+    <div class="header-brand">
+      <button
+        v-if="props.showSidebarToggle"
+        class="action-icon nav-toggle"
+        type="button"
+        :aria-label="props.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        @click="$emit('toggle-sidebar')"
+      >
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <div class="logo">
+        <h1>SubTrack</h1>
+      </div>
+    </div>
 
     <div class="header-controls">
       <div class="theme-slider" @click="toggleTheme" :class="{ 'is-dark': isDarkMode }">
@@ -29,11 +63,11 @@ const toggleTheme = () => {
       </div>
 
       <div class="action-circles">
-        <button class="action-icon">
-          <i class="fa solid fa-bell"></i>
+        <button class="action-icon" type="button">
+          <i class="fa-solid fa-bell"></i>
         </button>
-        <button class="action-icon">
-          <i class="fa solid fa-question-circle"></i>
+        <button class="action-icon" type="button">
+          <i class="fa-solid fa-circle-question"></i>
         </button>
       </div>
     </div>
@@ -42,27 +76,34 @@ const toggleTheme = () => {
 
 <style scoped>
 .top-header {
-  background-color: white;
+  background: color-mix(in srgb, var(--app-surface) 94%, transparent);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 30px;
-  border-bottom: 1px solid #f1f1f1;
+  border-bottom: 1px solid var(--app-border);
   width: 100%;
   height: 80px;
   box-sizing: border-box;
+  backdrop-filter: blur(18px);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .top-header h1 {
   font-family: 'Montserrat', sans-serif;
-  color: #004d26;
+  color: var(--app-heading);
   font-weight: 800;
 }
 
 .logo h1 {
   margin: 0;
   font-family: 'Montserrat', sans-serif;
-  color: #004d26;
+  color: var(--app-heading);
   font-weight: 800;
   font-size: 1.5rem;
 }
@@ -76,23 +117,22 @@ const toggleTheme = () => {
 .theme-slider {
   position: relative;
   display: flex;
-  width: 64px;   /* Specific width */
-  height: 32px;  /* Specific height */
-  background-color: #f1f1f1;
+  width: 64px;
+  height: 32px;
+  background-color: var(--app-surface-alt);
   border-radius: 16px;
   cursor: pointer;
   padding: 4px;
   transition: background-color 0.3s ease;
 }
 
-/* Fix: Ensure segments sit side-by-side */
 .slider-segment {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
-  color: #999;
+  color: var(--app-text-muted);
   font-size: 0.8rem;
 }
 
@@ -100,12 +140,12 @@ const toggleTheme = () => {
   position: absolute;
   top: 4px;
   left: 4px;
-  width: 24px; /* Size of the knob */
+  width: 24px;
   height: 24px;
-  background-color: white;
+  background-color: var(--app-surface);
   border-radius: 50%;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 2;
 }
 
@@ -113,16 +153,15 @@ const toggleTheme = () => {
   transform: translateX(32px);
 }
 
-.is-dark { 
+.is-dark {
   transition: 0.3s ease;
-  background-color: #333; 
+  background-color: var(--app-surface-soft);
 }
 
-.is-dark .slider-segment { 
-  color: #f1f1f1; 
+.is-dark .slider-segment {
+  color: var(--app-heading);
 }
 
-/* Action Icons */
 .action-circles {
   display: flex;
   gap: 10px;
@@ -133,7 +172,8 @@ const toggleTheme = () => {
   height: 45px;
   border-radius: 50%;
   border: none;
-  background-color: #f1f1f1;
+  background-color: var(--app-surface-alt);
+  color: var(--app-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,12 +181,36 @@ const toggleTheme = () => {
   transition: background-color 0.2s ease;
 }
 
-.action-icon:hover { 
-    background-color: #e0e0e0; 
+.nav-toggle {
+  background-color: var(--app-surface-alt);
+  color: var(--app-heading);
+  border: 1px solid var(--app-border);
 }
 
-.action-icon img { 
-    width: 22px; 
-    height: 22px; 
+.action-icon:hover {
+  background-color: var(--app-surface-soft);
+}
+
+.action-icon i {
+  font-size: 1rem;
+}
+
+@media (max-width: 959px) {
+  .top-header {
+    padding: 18px 16px;
+  }
+
+  .header-controls {
+    gap: 12px;
+  }
+
+  .action-circles {
+    gap: 8px;
+  }
+
+  .action-icon {
+    width: 42px;
+    height: 42px;
+  }
 }
 </style>

@@ -16,15 +16,22 @@ const newSub = ref({
   dueDate: '',
   notifyDays: 3
 });
+const submitError = ref('');
 
-const submitAdd = () => {
+const submitAdd = async () => {
+  submitError.value = '';
+
   if (!newSub.value.name || !newSub.value.amount || !newSub.value.dueDate) {
-    alert("Please fill in the required fields.");
+    submitError.value = 'Please fill in the required fields.';
     return;
   }
   
-  // Send data to global state
-  addSubscription({ ...newSub.value });
+  try {
+    await addSubscription({ ...newSub.value });
+  } catch (error) {
+    submitError.value = error.message;
+    return;
+  }
   
   // Reset form
   newSub.value = { name: '', category: '', amount: null, cycle: 'monthly', dueDate: '', notifyDays: 3 };
@@ -63,6 +70,8 @@ const submitAdd = () => {
         <input v-model="newSub.dueDate" type="date" />
       </div>
 
+      <p v-if="submitError" class="form-error">{{ submitError }}</p>
+
       <div class="modal-actions">
         <button class="cancel-btn" @click="emit('close')">Cancel</button>
         <button class="save-btn" @click="submitAdd">Save</button>
@@ -73,10 +82,10 @@ const submitAdd = () => {
 
 <style scoped>
 .modal-overlay {
-    font-family: 'Montserrat', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(5, 10, 8, 0.56);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -84,14 +93,16 @@ const submitAdd = () => {
 }
 
 .modal-card {
-  background: white;
+  background: var(--app-surface);
+  color: var(--app-text);
   padding: 30px;
   border-radius: 15px;
   width: 400px;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: var(--app-shadow);
+  border: 1px solid var(--app-border);
 }
 
 .input-group {
@@ -103,15 +114,21 @@ const submitAdd = () => {
 .input-group label {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--app-text);
 }
 
 .input-group input, .input-group select {
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   margin-top: 5px;
   font-family: inherit;
+  background: var(--app-surface-alt);
+  color: var(--app-text);
+}
+
+.input-group input::placeholder {
+  color: var(--app-text-muted);
 }
 
 .modal-actions {
@@ -121,8 +138,13 @@ const submitAdd = () => {
   margin-top: 15px;
 }
 
-.save-btn { background: #004d26; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
-.cancel-btn { background: #bcbcbc; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;}
-.save-btn:hover { background: #00361a; }
-.cancel-btn:hover { background: #a0a0a0; }
+.form-error {
+  color: #aa3333;
+  font-size: 0.9rem;
+}
+
+.save-btn { background: var(--app-accent-strong); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+.cancel-btn { background: var(--app-surface-soft); color: var(--app-text); padding: 10px 20px; border-radius: 8px; border: 1px solid var(--app-border); cursor: pointer; font-weight: 600;}
+.save-btn:hover { background: var(--app-accent); }
+.cancel-btn:hover { background: var(--app-surface-alt); }
 </style>

@@ -1,3 +1,10 @@
+"""
+Validation helpers for incoming API payloads.
+
+These functions protect the database layer by normalizing and validating JSON
+before route handlers create or update rows.
+"""
+
 import re
 from decimal import Decimal, InvalidOperation
 
@@ -9,13 +16,13 @@ from utils.subscription_utils import ALLOWED_BILLING_CYCLES, parse_date
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
-# FOR CHECKING IF AN EMAIL LOOKS VALID
 def is_valid_email(email):
+    """Simple format check used by the registration endpoint."""
     return bool(EMAIL_PATTERN.match(email))
 
 
-# FOR TURNING TRUE/FALSE INPUTS INTO REAL BOOLEAN VALUES
 def parse_boolean(value):
+    """Normalize common boolean-like inputs from JSON into Python booleans."""
     if isinstance(value, bool):
         return value, None
 
@@ -34,8 +41,17 @@ def parse_boolean(value):
     return None, "Must be a boolean value."
 
 
-# FOR VALIDATING SUBSCRIPTION INPUT BEFORE SAVING IT
 def validate_subscription_payload(data, partial=False):
+    """Validate subscription JSON for create and update routes.
+
+    Route usage:
+    - `POST /api/subscriptions` calls this with `partial=False`
+    - `PUT /api/subscriptions/<id>` calls this with `partial=True`
+
+    Frontend effect:
+    The returned `errors` object is designed to map cleanly back to form fields
+    when the dashboard is switched from mock state to real API requests.
+    """
     errors = {}
     cleaned_data = {}
     required_fields = [
@@ -89,7 +105,7 @@ def validate_subscription_payload(data, partial=False):
 
         if billing_cycle not in ALLOWED_BILLING_CYCLES:
             errors["billing_cycle"] = (
-                "Billing cycle must be monthly, quarterly, or yearly."
+                "Billing cycle must be weekly, monthly, or annual."
             )
         else:
             cleaned_data["billing_cycle"] = billing_cycle

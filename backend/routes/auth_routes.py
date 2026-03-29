@@ -1,4 +1,12 @@
+"""
+Authentication endpoints used for registration, login, and logout.
+
+These routes are the future bridge between the login/register frontend forms
+and the Flask session system. Right now the frontend is not calling them yet.
+"""
+
 from flask import Blueprint, jsonify, request, session
+from sqlalchemy import or_
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import db
@@ -9,9 +17,13 @@ from utils.validators import is_valid_email
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 
-# FOR REGISTERING A NEW USER
 @auth_bp.post("/register")
 def register():
+    """Create a new user account and store a hashed password.
+
+    Expected frontend caller:
+    A registration form should POST `username`, `email`, and `password` here.
+    """
     data = request.get_json(silent=True) or {}
 
     username = str(data.get("username", "")).strip()
@@ -50,21 +62,37 @@ def register():
     )
 
 
-# FOR LOGGING IN A USER
 @auth_bp.post("/login")
 def login():
+    """Authenticate a user and persist their ID in the Flask session.
+
+    System effect:
+    After this succeeds, protected routes can find the user through the session
+    cookie sent by the browser.
+    """
     data = request.get_json(silent=True) or {}
 
-    email = str(data.get("email", "")).strip().lower()
+    identifier = str(
+        data.get("email")
+        or data.get("username")
+        or data.get("identifier")
+        or ""
+    ).strip()
     password = str(data.get("password", ""))
 
-    if not email or not password:
-        return jsonify({"error": "email and password are required"}), 400
+    if not identifier or not password:
+        return jsonify({"error": "username/email and password are required"}), 400
 
-    user = User.query.filter_by(email=email).first()
+    lowered_identifier = identifier.lower()
+    user = User.query.filter(
+        or_(
+            User.email == lowered_identifier,
+            User.username == identifier,
+        )
+    ).first()
 
     if not user or not check_password_hash(user.password_hash, password):
-        return jsonify({"error": "Invalid email or password"}), 401
+        return jsonify({"error": "Invalid username/email or password"}), 401
 
     session.clear()
     session["user_id"] = user.user_id
@@ -77,8 +105,8 @@ def login():
     )
 
 
-# FOR LOGGING OUT THE CURRENT USER
 @auth_bp.post("/logout")
 def logout():
+    """Clear the current browser session."""
     session.clear()
     return jsonify({"message": "Logout successful"})

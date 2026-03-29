@@ -1,49 +1,65 @@
 <!-- Side Navigation Bar -->
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuth } from '../../composables/useAuth';
+import { useSubscriptions } from '../../composables/useSubscriptions';
+
+defineProps({
+  collapsed: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const route = useRoute();
 const router = useRouter();
-const currentRoute = computed(() => route.name);
+const currentPath = computed(() => route.path);
+const { currentUser, logout } = useAuth();
+const { resetSubscriptionStore } = useSubscriptions();
 
-const handleLogout = () => {
-  // Placeholder for logout logic
-  alert('Logging out...');
-  router.push('/'); // Redirect to login page after logout
+const handleLogout = async () => {
+  await logout();
+  resetSubscriptionStore();
+  router.push('/');
 };
 
 const navLinks = ref([
   { id: 'dashboard', name: 'Dashboard', path: '/dashboard', iconClass: 'fa-solid fa-house' },
-  { id: 'history',   name: 'History',   path: '/dashboard/history', iconClass: 'fa-solid fa-clock-rotate-left' },
-  { id: 'settings',  name: 'Settings',  path: '/dashboard/settings', iconClass: 'fa-solid fa-gear' },
-  { id: 'about',     name: 'About Us',  path: '/dashboard/about', iconClass: 'fa-solid fa-circle-info' },
+  { id: 'history', name: 'History', path: '/dashboard/history', iconClass: 'fa-solid fa-clock-rotate-left' },
+  { id: 'settings', name: 'Settings', path: '/dashboard/settings', iconClass: 'fa-solid fa-gear' },
+  { id: 'about', name: 'About Us', path: '/dashboard/about', iconClass: 'fa-solid fa-circle-info' },
 ]);
+
+const isActivePath = (path) => currentPath.value === path;
+const isAvailablePath = (path) => path === '/dashboard';
 </script>
 
 <template>
-    <nav class="sidebar">
+  <nav class="sidebar" :class="{ collapsed }">
     <div class="user-profile nav-item">
       <div class="icon-circle profile-icon">
         <i class="fa-solid fa-user"></i>
       </div>
-      <span class="link-text"> USERODSDOS </span>
+      <span class="link-text">{{ currentUser?.username || 'Guest User' }}</span>
     </div>
 
     <div class="nav-links">
-      <router-link
+      <component
         v-for="link in navLinks"
         :key="link.id"
-        :to="link.path"
+        :is="isAvailablePath(link.path) ? 'router-link' : 'button'"
+        :to="isAvailablePath(link.path) ? link.path : undefined"
+        :type="isAvailablePath(link.path) ? undefined : 'button'"
         class="nav-item"
-        :class="{ active: currentRoute === link.id }"
+        :class="{ active: isActivePath(link.path), unavailable: !isAvailablePath(link.path) }"
       >
         <div class="icon-circle">
           <i :class="link.iconClass"></i>
         </div>
         <span class="link-text">{{ link.name }}</span>
-      </router-link>
+      </component>
     </div>
 
     <div class="logout-wrapper">
@@ -53,48 +69,48 @@ const navLinks = ref([
         </div>
         <span class="link-text">Logout</span>
       </button>
-    </div> 
+    </div>
   </nav>
 </template>
 
 <style scoped>
 .sidebar {
-  background-color: #004d26;
-  width: 240px;
+  background: var(--app-sidebar-bg);
+  width: 100%;
   height: 100vh;
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   padding: 40px 15px;
   box-sizing: border-box;
   border-radius: 0 18px 18px 0;
-  justify-content: space-between;
+  transition: padding 0.28s ease, border-radius 0.28s ease;
 }
 
-/* 1. Reset User Profile */
+.sidebar.collapsed {
+  padding-inline: 12px;
+}
+
 .user-profile {
-  margin-bottom: 0; 
+  margin-bottom: 20px;
 }
 
-/* 2. The Navigation Links "Spacer" */
 .nav-links {
   display: flex;
   flex-direction: column;
   gap: 15px;
   width: 100%;
-  flex-grow: 0; 
-  margin-top: auto;
-  margin-bottom: auto; 
+  flex-grow: 1;
+  margin-top: 20px;
+  margin-bottom: 0;
 }
 
-/* 3. The Logout Wrapper */
 .logout-wrapper {
-  margin-top: auto; 
+  margin-top: auto;
   width: 100%;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1); /* Adds a nice divider */
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* 4. Unified Nav Item */
 .nav-item {
   display: flex;
   align-items: center;
@@ -103,25 +119,42 @@ const navLinks = ref([
   padding: 10px;
   border-radius: 12px;
   text-decoration: none;
-  color: white;
+  color: var(--app-sidebar-text);
   transition: all 0.2s ease;
   cursor: pointer;
-  border: none; 
+  border: none;
   background: transparent;
   font-family: 'Montserrat', sans-serif;
 }
 
-.nav-item:hover,
-.nav-item.active {
-  background-color: rgba(255, 255, 255, 0.1);
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  width: 56px;
+  margin-inline: auto;
+  padding: 8px 0;
+  gap: 0;
 }
 
-/* 5. Icon Circles (Ensuring they are identical) */
+.nav-item:hover,
+.nav-item.active {
+  background-color: var(--app-sidebar-hover);
+  transform: translateX(2px);
+}
+
+.sidebar.collapsed .nav-item:hover,
+.sidebar.collapsed .nav-item.active {
+  transform: none;
+}
+
+.nav-item.unavailable {
+  opacity: 0.65;
+}
+
 .icon-circle {
-  width: 45px; 
+  width: 45px;
   height: 45px;
   border-radius: 50%;
-  background-color: white; 
+  background-color: var(--app-icon-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,21 +163,49 @@ const navLinks = ref([
 
 .icon-circle i {
   font-size: 1.1rem;
-  color: #004d26;
+  color: var(--app-icon-text);
 }
 
 .link-text {
   font-weight: 600;
   font-size: 0.9rem;
   white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.2s ease, width 0.2s ease, transform 0.2s ease;
 }
 
+.sidebar.collapsed .link-text {
+  width: 0;
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.sidebar.collapsed .user-profile,
+.sidebar.collapsed .logout-btn {
+  width: 56px;
+  margin-inline: auto;
+}
 
 .logout-btn {
-  text-align: left; 
+  text-align: left;
 }
 
 .logout-btn:hover i {
-  color: #e25151; 
+  color: var(--app-danger);
+}
+
+@media (max-width: 959px) {
+  .sidebar {
+    border-radius: 0 18px 18px 0;
+    padding-inline: 15px;
+  }
+
+  .sidebar.collapsed .link-text {
+    width: auto;
+    opacity: 1;
+    transform: none;
+  }
 }
 </style>

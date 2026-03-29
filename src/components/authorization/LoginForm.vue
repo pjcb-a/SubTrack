@@ -1,14 +1,31 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
+import { useAuth } from '../../composables/useAuth';
 
 const router = useRouter();
-const name = ref('');
+const identifier = ref('');
 const password = ref('');
+const localError = ref('');
+const { login, authLoading } = useAuth();
 
-const handleLogin = () => {
-  // put API/Database check here.
-  router.push('/dashboard');
+const handleLogin = async () => {
+  localError.value = '';
+
+  if (!identifier.value.trim() || !password.value) {
+    localError.value = 'Enter your username or email and password.';
+    return;
+  }
+
+  try {
+    await login({
+      identifier: identifier.value,
+      password: password.value,
+    });
+    router.push('/dashboard');
+  } catch (error) {
+    localError.value = error.message;
+  }
 };
 </script>
 
@@ -17,8 +34,8 @@ const handleLogin = () => {
     <div class="form-content">
     <h1>Login</h1>
     <div class="input-group">
-        <label for="name">Username</label>
-        <input type="text" id="name" v-model="name" placeholder="Enter username"/>
+        <label for="identifier">Username or Email</label>
+        <input type="text" id="identifier" v-model="identifier" placeholder="Enter username or email"/>
     </div>
     
     <div class="input-group">
@@ -26,7 +43,11 @@ const handleLogin = () => {
         <input type="password" id="password" v-model="password" placeholder="Enter password" />
     </div>
 
-    <button @click="handleLogin" class="submit-btn">Login</button>
+    <p v-if="localError" class="form-error">{{ localError }}</p>
+
+    <button @click="handleLogin" class="submit-btn" :disabled="authLoading">
+      {{ authLoading ? 'Logging in...' : 'Login' }}
+    </button>
   </div>
 </template>
 
@@ -96,6 +117,8 @@ const handleLogin = () => {
   font-weight: 500;
   letter-spacing: 1px;
   margin-top: 20px;
+  border: none;
+  cursor: pointer;
 }
 
 .submit-btn:hover {
@@ -103,5 +126,18 @@ const handleLogin = () => {
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   transform: translateY(-5px);
   transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.submit-btn:disabled {
+  opacity: 0.75;
+  cursor: wait;
+}
+
+.form-error {
+  width: 100%;
+  margin-top: 10px;
+  color: #aa3333;
+  font-size: 0.9rem;
+  text-align: left;
 }
 </style>
