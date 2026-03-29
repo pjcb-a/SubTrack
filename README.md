@@ -1,8 +1,8 @@
-💳 SubTrack - Subscription Management Simplified
+SubTrack - Subscription Management Simplified
 
 SubTrack is a full-stack dashboard designed to help users take control of their recurring expenses. By centralizing subscription data, it provides clarity on spending habits and ensures you never get surprised by a renewal again.
 
-🚀 The Problem
+The Problem
 
 In the modern digital economy, "subscription fatigue" is real. Users often lose track of:
 
@@ -12,7 +12,7 @@ In the modern digital economy, "subscription fatigue" is real. Users often lose 
 
     Waste: Paying for services that are no longer being used because they are "out of sight, out of mind."
 
-💡 The Solution
+The Solution
 
 SubTrack negates these issues by providing a unified command center. It transforms raw subscription data into actionable insights through:
 
@@ -22,7 +22,7 @@ SubTrack negates these issues by providing a unified command center. It transfor
 
     Proactive Tracking: A dedicated "Upcoming Payments" list that highlights renewals due in the next 7 days.
 
-🛠️ Technical Necessity (Getting Started)
+Technical Necessity (Getting Started)
 
 To run the frontend and interact with the backend features implemented, you need the following setup:
 Prerequisites
@@ -65,7 +65,7 @@ Backend Installation
 
     python app.py
 
-📂 Project Navigation
+Project Navigation
 
     src/components/dashboard/: Contains the core UI blocks like StatGrid.vue (the main data display) and ControlBar.vue (the action/filter hub).
 
