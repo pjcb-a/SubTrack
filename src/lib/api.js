@@ -25,15 +25,25 @@ function getApiBaseUrl() {
 export async function apiRequest(path, options = {}) {
   const { body, headers, ...restOptions } = options;
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    credentials: 'include',
-    headers: {
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    ...restOptions,
-  });
+  let response;
+
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, {
+      credentials: 'include',
+      headers: {
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      ...restOptions,
+    });
+  } catch {
+    const error = new Error(
+      'Unable to reach the backend. Make sure the Flask server is running.',
+    );
+    error.status = 0;
+    throw error;
+  }
 
   const responseText = await response.text();
   const responseData = responseText ? JSON.parse(responseText) : {};

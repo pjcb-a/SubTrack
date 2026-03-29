@@ -19,14 +19,16 @@ async function restoreSession(force = false) {
 
   restorePromise = (async () => {
     try {
+      authError.value = '';
       const response = await apiRequest('/api/user');
       currentUser.value = response.user;
     } catch (error) {
-      if (error.status !== 401) {
-        throw error;
-      }
-
       currentUser.value = null;
+
+      if (error.status !== 401) {
+        authError.value = error.message;
+        return currentUser.value;
+      }
     } finally {
       authReady.value = true;
       restorePromise = null;

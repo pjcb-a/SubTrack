@@ -1,76 +1,117 @@
 SubTrack - Subscription Management Simplified
+# SubTrack
 
-SubTrack is a full-stack dashboard designed to help users take control of their recurring expenses. By centralizing subscription data, it provides clarity on spending habits and ensures you never get surprised by a renewal again.
+SubTrack is a full-stack subscription tracking app built with Vue, Vite, and Flask. It helps users manage recurring payments, monitor upcoming renewals, and keep a record of deleted subscriptions through the history view.
 
 The Problem
+## Features
 
-In the modern digital economy, "subscription fatigue" is real. Users often lose track of:
+- User registration and login with Flask session-based authentication
+- Dashboard for active subscriptions
+- Add, update, and delete subscription flows
+- History view for deleted subscriptions
+- Filter subscriptions by billing cycle
+- Upcoming renewal and spending summaries
+- Local development support for both SQLite and PostgreSQL
 
-    Hidden Costs: Small monthly fees that add up to significant annual drains.
+## Stack
 
-    Renewal Surprises: Forgetting when a trial ends or an annual fee is due.
+- Frontend: Vue 3, Vue Router, Vite
+- Backend: Flask, Flask-SQLAlchemy, Flask-CORS
+- Database: SQLite or PostgreSQL
 
-    Waste: Paying for services that are no longer being used because they are "out of sight, out of mind."
+## Run Locally
 
 The Solution
+Clone the repository and open the project folder:
 
-SubTrack negates these issues by providing a unified command center. It transforms raw subscription data into actionable insights through:
+```bash
+git clone https://github.com/pjcb-a/SubTrack.git
+cd SubTrack
+```
 
-    Dynamic Filtering: Instantly view costs by cycle (Weekly, Monthly, Annual).
+Frontend:
 
-    Visual Distribution: See exactly how your budget is split across different payment frequencies.
+```bash
+npm install
+npm run dev
+```
 
-    Proactive Tracking: A dedicated "Upcoming Payments" list that highlights renewals due in the next 7 days.
+Backend:
 
 Technical Necessity (Getting Started)
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+python app.py
+```
 
-To run the frontend and interact with the backend features implemented, you need the following setup:
-Prerequisites
+Default local URLs:
 
-    Node.js (v16+)
+- Frontend: `http://127.0.0.1:5173`
+- Backend: `http://127.0.0.1:5000`
 
-    Python 3.8+ (for the backend API)
+## Database Setup
 
-Frontend Installation
+The backend reads its database connection from:
 
-    Navigate to the root directory.
+[`backend/.env.example`](./backend/.env.example)
 
-    Install dependencies:
-    Bash
+Copy it first:
 
-    npm install
+```bash
+cd backend
+cp .env.example .env
+```
 
-    Start the development server:
-    Bash
+Then set `DATABASE_URL` in `backend/.env`.
 
-    npm run dev
+SQLite example:
 
-Backend Installation
+```env
+DATABASE_URL=sqlite:///subtrack.db
+```
 
-    Navigate to the /backend folder.
+PostgreSQL over TCP:
 
-    Create and activate a virtual environment:
-    Bash
+```env
+DATABASE_URL=postgresql+psycopg://<your_postgres_user>:<your_password>@localhost:5432/subtrack
+```
 
-    python3 -m venv venv
-    source venv/bin/activate
+PostgreSQL over Unix socket:
 
-    Install requirements:
-    Bash
+```env
+DATABASE_URL=postgresql+psycopg://<your_postgres_user>@/subtrack
+```
 
-    pip install -r requirements.txt
+If you use PostgreSQL, create the database and load the schema first:
 
-    Run the server:
-    Bash
+```bash
+createdb subtrack
+psql -U <your_postgres_user> -d subtrack -f postgres_schema.sql
+```
 
-    python app.py
+After changing `backend/.env`, restart the backend:
 
 Project Navigation
+```bash
+cd backend
+source venv/bin/activate
+python app.py
+```
 
-    src/components/dashboard/: Contains the core UI blocks like StatGrid.vue (the main data display) and ControlBar.vue (the action/filter hub).
+For full localhost and PostgreSQL setup instructions, see [backend/LOCALHOST_SETUP.md](./backend/LOCALHOST_SETUP.md).
 
-    src/composables/: Logic for managing state, specifically useSubscriptions.js which syncs data across components.
+For backend-specific configuration details, see [backend/README.md](./backend/README.md).
 
-    src/style.css: The global design system, including the Light and Dark theme variables.
+## Project Structure
 
     backend/: The Flask/Python API handling user authentication and subscription storage.
+- `src/components/dashboard/`: dashboard UI
+- `src/components/history/`: subscription history view
+- `src/composables/`: shared frontend state and API interaction
+- `src/style.css`: global theme and UI tokens
+- `backend/`: Flask API, models, routes, and database setup

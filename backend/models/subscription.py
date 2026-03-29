@@ -28,6 +28,7 @@ class Subscription(db.Model):
     start_date = db.Column(db.Date, nullable=False)
     due_day = db.Column(db.Integer, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
 
     user = db.relationship("User", back_populates="subscriptions")
     category = db.relationship("Category", back_populates="subscriptions")
@@ -58,6 +59,7 @@ class Subscription(db.Model):
             "next_due_date": next_due_date.isoformat() if next_due_date else None,
             "due_day": self.due_day,
             "is_active": self.is_active,
+            "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
             "notification_setting": (
                 self.notification_setting.to_dict()
                 if self.notification_setting
