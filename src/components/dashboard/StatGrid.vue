@@ -11,7 +11,7 @@ const filteredSubs = computed(() => {
   if (currentFilter.value !== 'all') {
     list = list.filter(s => s.cycle === currentFilter.value);
   }
-  return list.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)).slice(0, 3);
+  return list.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 });
 
 const totalActive = computed(() => subscriptions.value.length);
@@ -40,7 +40,7 @@ const totalAnnualSpend = computed(() => {
       <h3>Upcoming ({{ currentFilter === 'all' ? 'All' : currentFilter }})</h3>
       <div class="stat-content">
         <div v-for="sub in filteredSubs" :key="sub.id" class="sub-item">
-  <div class="sub-icon">{{ sub.name ? sub.name[0].toUpperCase() : '?' }}</div>
+      <div class="sub-icon">{{ sub.name ? sub.name[0].toUpperCase() : '?' }}</div>
 
 <div class="progress-container">
   <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
@@ -111,6 +111,8 @@ const totalAnnualSpend = computed(() => {
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-card h3 {
@@ -125,6 +127,31 @@ const totalAnnualSpend = computed(() => {
 /* Block 1: Upcoming Payments Mockup */
 .upcoming-payments { 
     flex: 1.5; 
+}
+
+.upcoming-payments .stat-content {
+  max-height: 150px; /* Adjust this height based on your preference */
+  overflow-y: auto;
+  padding-right: 8px; /* Space for the scrollbar */
+}
+
+/* 2. Make the scrollbar look pretty (Webkit browsers like Chrome/Edge/Safari) */
+.upcoming-payments .stat-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.upcoming-payments .stat-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.upcoming-payments .stat-content::-webkit-scrollbar-thumb {
+  background: #004d26; /* Matches your theme green */
+  border-radius: 10px;
+}
+
+.upcoming-payments .stat-content::-webkit-scrollbar-thumb:hover {
+  background: #00361a;
 }
 
 .sub-item {

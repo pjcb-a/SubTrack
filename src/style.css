@@ -21,7 +21,7 @@ body.dark-theme {
   background-color: #1a1a1a;
   color: #ffffff;
 }
-body.dark-theme .stat-card {
+body.dark-theme {
   background-color: #2d2d2d;
   color: white;
 }

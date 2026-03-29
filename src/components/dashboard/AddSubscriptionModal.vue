@@ -41,7 +41,7 @@ const submitAdd = () => {
       
       <div class="input-group">
         <label>Name</label>
-        <input v-model="newSub.name" type="text" placeholder="e.g. Netflix" />
+        <input v-model="newSub.name" type="text" placeholder="Subscription Name" />
       </div>
 
       <div class="input-group">
