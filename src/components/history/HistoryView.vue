@@ -168,7 +168,9 @@ const formatDate = (dateString) => {
 }
 
 .empty-history i { 
-  font-size: 3rem; margin-bottom: 15px; display: block; 
+  font-size: 3rem; 
+  margin-bottom: 15px; 
+  display: block; 
 }
 
 .history-table {
