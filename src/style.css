@@ -55,16 +55,32 @@ body {
   display: block;
 }
 
-/* FIX UI FOR DARK MODE UI HERE */
-/* 
+/* DARK MODE UI */
+
 body.dark-theme {
-  background-color: #1a1a1a;
-  color: #ffffff;
+  color-scheme: dark;
+  --app-bg:
+    radial-gradient(circle at top left, rgba(78, 120, 96, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(24, 54, 41, 0.22), transparent 24%),
+    linear-gradient(180deg, #09100d 0%, #0d1512 48%, #101815 100%);
+  --app-surface: #111917;
+  --app-surface-alt: #17211d;
+  --app-surface-soft: #1d2a25;
+  --app-border: #25332d;
+  --app-text: #e8efe9;
+  --app-text-muted: #97a59d;
+  --app-heading: #f4f8f5;
+  --app-accent: #58b784;
+  --app-accent-strong: #3e9868;
+  --app-accent-soft: rgba(88, 183, 132, 0.16);
+  --app-sidebar-bg: linear-gradient(180deg, #0d1512 0%, #12201a 100%);
+  --app-sidebar-text: #eef5f0;
+  --app-sidebar-hover: rgba(88, 183, 132, 0.16);
+  --app-icon-surface: #1a2721;
+  --app-icon-text: #bfe8cf;
+  --app-danger: #d56b6b;
+  --app-danger-strong: #be5656;
+  --app-highlight-panel: linear-gradient(145deg, #183226 0%, #1f4333 45%, #10231a 100%);
+  --app-shadow: 0 22px 52px rgba(0, 0, 0, 0.34);
+  --app-shadow-soft: 0 14px 30px rgba(0, 0, 0, 0.26);
 }
-body.dark-theme {
-  background-color: #2d2d2d;
-  color: white;
-}
-body.dark-theme h1, body.dark-theme h3 {
-  color: #00ff73; /* Neon green for dark mode 
-} */
