@@ -12,13 +12,6 @@ const showAddModal = ref(false);
 const showUpdateModal = ref(false);
 const showDeleteModal = ref(false);
 
-const visibleRecordCount = computed(() => {
-  if (currentFilter.value === 'all') {
-    return subscriptions.value.length;
-  }
-
-  return subscriptions.value.filter((sub) => sub.cycle === currentFilter.value).length;
-});
 </script>
 
 <template>
@@ -51,10 +44,6 @@ const visibleRecordCount = computed(() => {
         <span class="dropdown-arrow">▼</span>
       </div>
 
-      <button class="control-btn records-btn" type="button">
-        <i class="fa-solid fa-bars"></i>
-        <span>{{ visibleRecordCount }} Record{{ visibleRecordCount === 1 ? '' : 's' }}</span>
-      </button>
     </div>
   </div>
 
@@ -129,10 +118,6 @@ const visibleRecordCount = computed(() => {
 
 .delete-btn:hover {
   background-color: var(--app-danger);
-}
-
-.records-btn {
-  padding: 10px 25px;
 }
 
 .select-wrapper {

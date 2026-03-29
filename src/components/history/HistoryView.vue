@@ -138,13 +138,20 @@ const formatDate = (dateString) => {
 }
 
 .history-container {
-    font-family: 'Montserrat', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   color: var(--app-text);
   animation: fadeIn 0.3s ease;
 }
 
 .history-header {
+  justify-content: center;
   margin-bottom: 30px;
+}
+
+.history-header p {
+  color: var(--app-text-muted);
+  font-size: 0.9rem;
+  margin-top: 5px;
 }
 
 .history-header h2 {
@@ -152,6 +159,7 @@ const formatDate = (dateString) => {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 10px;
 }
 
 .history-error {
@@ -160,6 +168,10 @@ const formatDate = (dateString) => {
 }
 
 .empty-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 100px 20px;
   background: var(--app-surface-alt);
@@ -168,7 +180,7 @@ const formatDate = (dateString) => {
 }
 
 .empty-history i { 
-  font-size: 3rem; 
+  font-size: 4rem; 
   margin-bottom: 15px; 
   display: block; 
 }
