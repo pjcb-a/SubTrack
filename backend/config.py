@@ -14,6 +14,14 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
+LOCAL_DEV_CORS_ORIGINS = [
+    r"^https?://localhost(?::\d+)?$",
+    r"^https?://127\.0\.0\.1(?::\d+)?$",
+    r"^https?://192\.168\.\d{1,3}\.\d{1,3}(?::\d+)?$",
+    r"^https?://10\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?$",
+    r"^https?://172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}(?::\d+)?$",
+]
+
 
 def get_cors_origins():
     """Return the list of frontend URLs allowed to access the API.
@@ -22,11 +30,18 @@ def get_cors_origins():
     that is not listed here, browser requests from the UI will fail even when
     the endpoint itself works.
     """
-    cors_value = os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000",
-    )
-    return [origin.strip() for origin in cors_value.split(",") if origin.strip()]
+    cors_value = os.getenv("CORS_ORIGINS", "")
+    configured_origins = [
+        origin.strip() for origin in cors_value.split(",") if origin.strip()
+    ]
+
+    if configured_origins:
+        return configured_origins
+
+    # Defaults to common local-development hosts so a freshly cloned project
+    # can run from localhost, loopback, or a machine's private LAN address
+    # without editing environment files first.
+    return LOCAL_DEV_CORS_ORIGINS
 
 
 class Config:
