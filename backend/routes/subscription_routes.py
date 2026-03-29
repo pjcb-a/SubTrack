@@ -6,7 +6,7 @@ and summary values in the frontend once the mock store is replaced with API
 requests.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from flask import Blueprint, jsonify, request, g
 
@@ -48,8 +48,29 @@ def list_subscriptions():
     user's full subscription list.
     """
     subscriptions = (
-        Subscription.query.filter_by(user_id=g.current_user.user_id)
+        Subscription.query.filter_by(
+            user_id=g.current_user.user_id,
+            is_active=True,
+        )
         .order_by(Subscription.subscription_id.desc())
+        .all()
+    )
+
+    return jsonify(
+        {
+            "subscriptions": [subscription.to_dict() for subscription in subscriptions],
+        }
+    )
+
+
+@subscription_bp.get("/history")
+@login_required
+def list_subscription_history():
+    """Return deleted subscriptions so the history view survives refreshes."""
+    subscriptions = (
+        Subscription.query.filter_by(user_id=g.current_user.user_id)
+        .filter(Subscription.deleted_at.isnot(None))
+        .order_by(Subscription.deleted_at.desc(), Subscription.subscription_id.desc())
         .all()
     )
 
@@ -220,6 +241,9 @@ def update_subscription(subscription_id):
                 "notification_enabled"
             ]
 
+    if "is_active" in cleaned_data and cleaned_data["is_active"]:
+        subscription.deleted_at = None
+
     db.session.commit()
 
     return jsonify(
@@ -233,7 +257,7 @@ def update_subscription(subscription_id):
 @subscription_bp.delete("/<int:subscription_id>")
 @login_required
 def delete_subscription(subscription_id):
-    """Delete one subscription belonging to the logged-in user."""
+    """Move one subscription into history instead of hard-deleting it."""
     subscription, error_response = get_user_subscription_or_404(
         subscription_id,
         g.current_user.user_id,
@@ -242,7 +266,34 @@ def delete_subscription(subscription_id):
     if error_response:
         return error_response
 
-    db.session.delete(subscription)
+    subscription.is_active = False
+    subscription.deleted_at = datetime.utcnow()
     db.session.commit()
 
-    return jsonify({"message": "Subscription deleted successfully"})
+    return jsonify(
+        {
+            "message": "Subscription moved to history successfully",
+            "subscription": subscription.to_dict(),
+        }
+    )
+
+
+@subscription_bp.delete("/history")
+@login_required
+def clear_subscription_history():
+    """Permanently remove deleted subscriptions from the history view."""
+    deleted_subscriptions = (
+        Subscription.query.filter_by(
+            user_id=g.current_user.user_id,
+            is_active=False,
+        )
+        .filter(Subscription.deleted_at.isnot(None))
+        .all()
+    )
+
+    for subscription in deleted_subscriptions:
+        db.session.delete(subscription)
+
+    db.session.commit()
+
+    return jsonify({"message": "Subscription history cleared successfully"})

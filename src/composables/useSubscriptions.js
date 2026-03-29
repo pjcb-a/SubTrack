@@ -37,6 +37,7 @@ function formatUiSubscription(subscription) {
     startDate: subscription.start_date,
     dueDay: subscription.due_day,
     isActive: subscription.is_active,
+    deletedAt: subscription.deleted_at,
   };
 }
 
@@ -85,16 +86,29 @@ async function fetchSubscriptions({ seedIfEmpty = true, force = false } = {}) {
 
   fetchPromise = (async () => {
     try {
-      let response = await apiRequest('/api/subscriptions');
+      let [response, historyResponse] = await Promise.all([
+        apiRequest('/api/subscriptions'),
+        apiRequest('/api/subscriptions/history'),
+      ]);
       let nextSubscriptions = response.subscriptions?.map(formatUiSubscription) ?? [];
+      let nextDeletedSubscriptions = historyResponse.subscriptions?.map(formatUiSubscription) ?? [];
 
-      if (seedIfEmpty && nextSubscriptions.length === 0) {
+      if (
+        seedIfEmpty
+        && nextSubscriptions.length === 0
+        && nextDeletedSubscriptions.length === 0
+      ) {
         await seedMockSubscriptionsForUser();
-        response = await apiRequest('/api/subscriptions');
+        [response, historyResponse] = await Promise.all([
+          apiRequest('/api/subscriptions'),
+          apiRequest('/api/subscriptions/history'),
+        ]);
         nextSubscriptions = response.subscriptions?.map(formatUiSubscription) ?? [];
+        nextDeletedSubscriptions = historyResponse.subscriptions?.map(formatUiSubscription) ?? [];
       }
 
       subscriptions.value = nextSubscriptions;
+      deletedSubscriptions.value = nextDeletedSubscriptions;
       subscriptionsLoaded.value = true;
       return subscriptions.value;
     } catch (error) {
@@ -136,23 +150,21 @@ async function updateSubscription(id, updatedSubscription) {
 }
 
 async function deleteSubscription(id) {
+  const response = await apiRequest(`/api/subscriptions/${id}`, {
+    method: 'DELETE',
+  });
+  const archivedSubscription = formatUiSubscription(response.subscription);
 
-  //Find sub in current list before deleting it
-const subToArchive = subscriptions.value.find((s) => s.id === id);
+  subscriptions.value = subscriptions.value.filter((subscription) => subscription.id !== id);
+  deletedSubscriptions.value = [archivedSubscription, ...deletedSubscriptions.value];
+}
 
-await apiRequest(`/api/subscriptions/${id}`, {
+async function clearDeletedSubscriptions() {
+  await apiRequest('/api/subscriptions/history', {
     method: 'DELETE',
   });
 
-  subscriptions.value = subscriptions.value.filter((subscription) => subscription.id !== id);
-
-  if (subToArchive) {
-    deletedSubscriptions.value.push({
-      ...subToArchive,
-      deletedAt: new Date().toISOString(), // Optional: adds a "Date Deleted" record
-      status: 'Deleted'
-    });
-  }
+  deletedSubscriptions.value = [];
 }
 
 function resetSubscriptionStore() {
@@ -175,6 +187,7 @@ export function useSubscriptions() {
     addSubscription,
     updateSubscription,
     deleteSubscription,
+    clearDeletedSubscriptions,
     resetSubscriptionStore,
   };
 }

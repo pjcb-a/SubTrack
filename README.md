@@ -74,3 +74,5 @@ Backend Installation
     src/style.css: The global design system, including the Light and Dark theme variables.
 
     backend/: The Flask/Python API handling user authentication and subscription storage.
+
+For a more complete localhost/device setup guide with PostgreSQL instructions, see [backend/LOCALHOST_SETUP.md](./backend/LOCALHOST_SETUP.md).

@@ -2,6 +2,8 @@
 
 This folder contains the Flask backend for the SubTrack project.
 
+For a full localhost and device setup walkthrough, see [LOCALHOST_SETUP.md](./LOCALHOST_SETUP.md).
+
 ## What it does
 
 - Registers users and stores hashed passwords
@@ -84,15 +86,38 @@ backend/subtrack.db
 
 ## Using PostgreSQL later
 
-When you are ready to move from SQLite to PostgreSQL, update the `DATABASE_URL` in `.env`.
+When you are ready to move from SQLite to PostgreSQL, keep the backend models as they are and make the database match them.
+
+1. Create the PostgreSQL database, for example `subtrack`.
+2. Run the checked-in schema file:
+
+```bash
+psql -U postgres -d subtrack -f postgres_schema.sql
+```
+
+3. Update the `DATABASE_URL` in `.env`.
 
 Example:
 
 ```env
-DATABASE_URL=postgresql+psycopg://postgres:your_password@localhost:5432/subtrack_db
+DATABASE_URL=postgresql+psycopg://postgres:your_password@localhost:5432/subtrack
 ```
 
-You do not need to change the model code for that switch because SQLAlchemy handles the database connection.
+4. Start the backend normally:
+
+```bash
+python app.py
+```
+
+The schema file already matches the current SQLAlchemy models, so you do not need to rename columns or tables in the backend to make PostgreSQL work.
+
+### PostgreSQL schema notes
+
+- `users` includes both `username` and `email`
+- `subscriptions` stores `start_date` and `due_day`
+- `notification_settings` is the correct reminders table name
+- `next_due_date` is computed by the backend and is not stored in PostgreSQL
+- `postgres_schema.sql` seeds the default category rows expected by the frontend
 
 ## Important for frontend integration
 

@@ -1,17 +1,26 @@
 <script setup>
-import { useRouter } from 'vue-router';    
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useSubscriptions } from '../../composables/useSubscriptions';
+import { formatCurrency } from '../../utils/subscriptionDates';
 
 const router = useRouter();
-const { deletedSubscriptions } = useSubscriptions();
+const { deletedSubscriptions, clearDeletedSubscriptions } = useSubscriptions();
+const historyError = ref('');
 
 const goBack = () => {
   router.push('/dashboard');
 };
 
-const clearHistory = () => {
+const clearHistory = async () => {
+  historyError.value = '';
+
   if (confirm('Are you sure you want to permanently clear all history records?')) {
-    deletedSubscriptions.value = [];
+    try {
+      await clearDeletedSubscriptions();
+    } catch (error) {
+      historyError.value = error.message;
+    }
   }
 };
 
@@ -42,6 +51,8 @@ const formatDate = (dateString) => {
       <p>Viewing deleted and archived subscriptions</p>
     </header>
 
+    <p v-if="historyError" class="history-error">{{ historyError }}</p>
+
     <div v-if="deletedSubscriptions.length === 0" class="empty-history">
       <i class="fa-solid fa-ghost"></i>
       <p>No history found. Delete a subscription to see it here!</p>
@@ -62,7 +73,7 @@ const formatDate = (dateString) => {
           <tr v-for="sub in deletedSubscriptions" :key="sub.id">
             <td class="name-cell"><strong>{{ sub.name }}</strong></td>
             <td>{{ sub.category }}</td>
-            <td>₱{{ sub.amount.toLocaleDateString() }}</td>
+            <td>{{ formatCurrency(sub.amount) }}</td>
             <td><span class="cycle-badge">{{ sub.cycle }}</span></td>
             <td class="date-cell">{{ formatDate(sub.deletedAt) }}</td>
           </tr>
@@ -141,6 +152,11 @@ const formatDate = (dateString) => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.history-error {
+  color: var(--app-danger);
+  margin-bottom: 18px;
 }
 
 .empty-history {
