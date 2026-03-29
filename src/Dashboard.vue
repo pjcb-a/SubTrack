@@ -94,12 +94,17 @@ onBeforeUnmount(() => {
       />
 
       <main class="content-body">
-        <ControlBar />
+        <template v-if="router.currentRoute.value.path === '/dashboard'">
+          <ControlBar />
+          <div class="data-container">
+            <StatGrid />
+            <CalendarView />
+          </div>
+        </template>
 
-        <div class="data-container">
-          <StatGrid />
-          <CalendarView />
-        </div>
+        <template v-else>
+          <router-view />
+        </template>
       </main>
     </div>
   </div>

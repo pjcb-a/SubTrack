@@ -15,6 +15,7 @@ const CATEGORY_ID_BY_NAME = {
 };
 
 const subscriptions = ref([]);
+const deletedSubscriptions = ref([]);  // For History logic adding also the deleted subscriptions
 const currentFilter = ref('all');
 const subscriptionsLoading = ref(false);
 const subscriptionsLoaded = ref(false);
@@ -135,15 +136,28 @@ async function updateSubscription(id, updatedSubscription) {
 }
 
 async function deleteSubscription(id) {
-  await apiRequest(`/api/subscriptions/${id}`, {
+
+  //Find sub in current list before deleting it
+const subToArchive = subscriptions.value.find((s) => s.id === id);
+
+await apiRequest(`/api/subscriptions/${id}`, {
     method: 'DELETE',
   });
 
   subscriptions.value = subscriptions.value.filter((subscription) => subscription.id !== id);
+
+  if (subToArchive) {
+    deletedSubscriptions.value.push({
+      ...subToArchive,
+      deletedAt: new Date().toISOString(), // Optional: adds a "Date Deleted" record
+      status: 'Deleted'
+    });
+  }
 }
 
 function resetSubscriptionStore() {
   subscriptions.value = [];
+  deletedSubscriptions.value = [];
   subscriptionsLoaded.value = false;
   subscriptionsLoading.value = false;
   subscriptionsError.value = '';
@@ -152,6 +166,7 @@ function resetSubscriptionStore() {
 export function useSubscriptions() {
   return {
     subscriptions,
+    deletedSubscriptions,
     currentFilter,
     subscriptionsLoading,
     subscriptionsLoaded,

@@ -33,7 +33,7 @@ const navLinks = ref([
 ]);
 
 const isActivePath = (path) => currentPath.value === path;
-const isAvailablePath = (path) => path === '/dashboard';
+const isAvailablePath = (path) => ['/dashboard', '/dashboard/history'].includes(path);
 </script>
 
 <template>

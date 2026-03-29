@@ -10,7 +10,17 @@ import { useSubscriptions } from './composables/useSubscriptions'
 
 const routes = [
     { path: '/', component: AuthPage, meta: { guestOnly: true } },
-    { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } }
+    { 
+      path: '/dashboard', 
+      component: Dashboard, 
+      meta: { requiresAuth: true },
+      children: [
+        { 
+          path: 'history', 
+          component: () => import('./components/history/HistoryView.vue') 
+        }
+      ]
+    }
 ]
 
 const router = createRouter({
