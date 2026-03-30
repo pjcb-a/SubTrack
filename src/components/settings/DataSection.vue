@@ -94,6 +94,39 @@
   color: var(--app-text-muted); 
 }
 
+.settings-btn-secondary {
+  background-color: var(--app-surface-alt);
+  border: 2px solid var(--app-border);
+  color: var(--app-text); 
+  padding: 10px 20px; 
+  border-radius: 12px;
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: 0.2s;
+}
+
+.settings-btn-secondary:hover {
+  background-color: var(--app-accent-strong);
+  color: #f5f5f5;
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+.clear-btn {
+  background: transparent;
+  border: 1px solid var(--app-danger);
+  color: var(--app-danger);
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.clear-btn:hover {
+  background: var(--app-danger);
+  color: white;
+}
+
 @media (max-width: 700px) {
   .data-grid { 
     grid-template-columns: 1fr; 
