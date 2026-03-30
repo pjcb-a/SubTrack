@@ -143,8 +143,31 @@ const submitAdd = async () => {
   font-size: 0.9rem;
 }
 
-.save-btn { background: var(--app-accent-strong); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
-.cancel-btn { background: var(--app-surface-soft); color: var(--app-text); padding: 10px 20px; border-radius: 8px; border: 1px solid var(--app-border); cursor: pointer; font-weight: 600;}
-.save-btn:hover { background: var(--app-accent); }
-.cancel-btn:hover { background: var(--app-surface-alt); }
+.save-btn { 
+  background: var(--app-accent-strong); 
+  color: white; 
+  padding: 10px 20px; 
+  border-radius: 8px; 
+  border: none; 
+  cursor: pointer; 
+  font-weight: 600; 
+}
+
+.cancel-btn { 
+  background: var(--app-surface-soft); 
+  color: var(--app-text); 
+  padding: 10px 20px; 
+  border-radius: 8px; 
+  border: 1px solid var(--app-border); 
+  cursor: pointer; 
+  font-weight: 600;
+}
+
+.save-btn:hover { 
+  background: var(--app-accent); 
+}
+
+.cancel-btn:hover { 
+  background: var(--app-surface-alt); 
+}
 </style>
