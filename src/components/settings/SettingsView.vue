@@ -7,87 +7,109 @@ import NotificationSection from './NotificationSection.vue';
 import DataSection from './DataSection.vue';
 
 const router = useRouter();
-
-const goBack = () => {
-    router.push('/dashboard');
-}
+const goBack = () => router.push('/dashboard');
 </script>
 
 <template>
     <div class="settings-page">
-        <button class="back-btn" @click="goBack">
-            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
-        </button>
-        <h1> <i class="fa-solid fa-gear"></i> Settings</h1>
-    </div>
+        <header class="settings-header">
+            <button class="back-btn" @click="goBack">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <h1><i class="fa-solid fa-gear"></i> Settings</h1>
+        </header>
 
-    <div class="settings-content">
-        <ProfileSection />
-        <AccountSection />
-        <PreferencesSection />
-        <NotificationSection />
-        <DataSection />
+        <div class="settings-stack">
+            <ProfileSection />
+            <AccountSection />
+            <PreferencesSection />
+            <NotificationSection />
+            <DataSection />
+        </div>
     </div>
-
 </template>
+
+<style>
+/* GLOBAL SETTINGS STYLES (Accessible by Children) */
+.settings-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--app-shadow-soft);
+  transition: transform 0.2s ease;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.settings-card h3 {
+  color: var(--app-heading);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.1rem;
+}
+
+.settings-card h3 i {
+  color: var(--app-accent);
+  width: 20px;
+}
+</style>
 
 <style scoped>
 .settings-page {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-    animation: fadeIn 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+  max-width: 850px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease;
 }
 
 .settings-header {
-    margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .settings-header h1 {
-    margin-top: 20px;
-    color: var(--app-heading);
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  margin-top: 15px;
+  color: var(--app-heading);
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .settings-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    padding-bottom: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 60px;
 }
 
 .back-btn {
-    background: var(--app-surface-soft);
-    border: 1px solid var(--app-border);
-    color: var(--app-text);
-    padding: 8px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    transition: all 0.2s ease;
+  background: var(--app-surface-soft);
+  border: 1px solid var(--app-border);
+  color: var(--app-text);
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .back-btn:hover {
-    background: var(--app-accent);
-    color: white;
+  background: var(--app-accent);
+  color: white;
 }
 
-@media (max-width: 959px) {
-  .settings-page {
-    padding: 15px;
-  }
-  .settings-stack {
-    gap: 15px;
-  }
+@media (max-width: 768px) {
+  .settings-page { padding: 0 10px; }
+  .settings-header h1 { font-size: 1.5rem; }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 </style>

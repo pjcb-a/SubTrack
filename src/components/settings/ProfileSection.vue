@@ -14,8 +14,8 @@
       </div>
 
       <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" class="settings-input" value="John Paul Jacob" />
+        <label>Username</label>
+        <input type="text" class="settings-input" value=" " />
         <button class="update-btn">Save Changes</button>
       </div>
     </div>
@@ -28,6 +28,7 @@
   gap: 30px;
   align-items: center;
 }
+
 .initials-circle {
   width: 80px;
   height: 80px;
@@ -41,20 +42,22 @@
   font-weight: 700;
   box-shadow: var(--app-shadow-soft);
 }
+
 .form-group {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+
 .settings-input {
   background: var(--app-surface-alt);
   border: 1px solid var(--app-border);
   padding: 12px;
   border-radius: 12px;
   color: var(--app-text);
-  font-family: inherit;
 }
+
 .update-btn {
   background: var(--app-accent);
   color: white;

@@ -1,3 +1,7 @@
+<script setup>
+
+</script>
+
 <template>
   <section class="settings-card">
     <div class="card-header">
