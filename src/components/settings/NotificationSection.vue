@@ -15,7 +15,7 @@
           <p>Get notified 3 days before a subscription is due.</p>
         </div>
         <label class="switch">
-          <input type="checkbox" checked>
+          <input type="checkbox">
           <span class="slider"></span>
         </label>
       </div>
