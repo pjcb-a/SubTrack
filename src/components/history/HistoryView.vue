@@ -5,23 +5,10 @@ import { useSubscriptions } from '../../composables/useSubscriptions';
 import { formatCurrency } from '../../utils/subscriptionDates';
 
 const router = useRouter();
-const { deletedSubscriptions, clearDeletedSubscriptions } = useSubscriptions();
-const historyError = ref('');
+const { deletedSubscriptions} = useSubscriptions();
 
 const goBack = () => {
   router.push('/dashboard');
-};
-
-const clearHistory = async () => {
-  historyError.value = '';
-
-  if (confirm('Are you sure you want to permanently clear all history records?')) {
-    try {
-      await clearDeletedSubscriptions();
-    } catch (error) {
-      historyError.value = error.message;
-    }
-  }
 };
 
 const formatDate = (dateString) => {
@@ -41,17 +28,12 @@ const formatDate = (dateString) => {
             <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
         </button>
 
-        <button v-if="deletedSubscriptions.length > 0" class="clear-btn" @click="clearHistory">
-            <i class="fa-solid fa-trash"></i> Clear History
-        </button>
     </div>
 
     <header class="history-header">
       <h2><i class="fa-solid fa-clock-rotate-left"></i> Subscription History</h2>
       <p>Viewing deleted and archived subscriptions</p>
     </header>
-
-    <p v-if="historyError" class="history-error">{{ historyError }}</p>
 
     <div v-if="deletedSubscriptions.length === 0" class="empty-history">
       <i class="fa-solid fa-ghost"></i>
@@ -109,21 +91,6 @@ const formatDate = (dateString) => {
   background: var(--app-accent);
   color: white;
   border-color: var(--app-accent);
-}
-
-.clear-btn {
-  background: transparent;
-  border: 1px solid var(--app-danger);
-  color: var(--app-danger);
-  padding: 8px 16px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.clear-btn:hover {
-  background: var(--app-danger);
-  color: white;
 }
 
 .return-btn {

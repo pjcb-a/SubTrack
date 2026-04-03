@@ -68,6 +68,10 @@
   cursor: pointer;
   align-self: flex-start;
 }
+
+.update-btn:hover {
+  background: var();
+}
 @media (max-width: 600px) {
   .profile-content { flex-direction: column; text-align: center; }
   .update-btn { align-self: stretch; }

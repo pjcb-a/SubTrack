@@ -1,5 +1,21 @@
 <script setup>
+import { ref } from 'vue';
+import { useSubscriptions } from '../../composables/useSubscriptions';
 
+const { deletedSubscriptions, clearDeletedSubscriptions } = useSubscriptions();
+const HistoryError = ref('');
+
+const clearHistory = async () => {
+  HistoryError.value = '';
+
+  if (confirm('Are you sure you want to permanently clear all history records?')) {
+    try {
+      await clearDeletedSubscriptions();
+    } catch (error) {
+      HistoryError.value = error.message;
+    }
+  }
+};
 </script>
 
 <template>
@@ -32,8 +48,13 @@
       <div class="clear-text">
         <span>Clean Up History</span>
         <p>This will permanently remove all items from your deleted history.</p>
+        <p v-if="HistoryError" class="error-text"> {{ HistoryError }}</p>
       </div>
-      <button class="clear-btn" >
+
+
+      <button v-if="deletedSubscriptions.length === 0" class="clear-btn-locked"> <i class="fa-solid fa-history"></i> No History</button>
+     
+      <button v-if="deletedSubscriptions.length > 0" class="clear-btn" @click="clearHistory">
             <i class="fa-solid fa-trash"></i> Clear History
         </button>
     </div>
@@ -119,6 +140,16 @@
   padding: 8px 16px;
   border-radius: 10px;
   cursor: pointer;
+  font-weight: 600;
+}
+
+.clear-btn-locked {
+  cursor: not-allowed;
+  background: transparent;
+  border: 2px solid var(--app-text-muted);
+  color: var(--app-text-muted);
+  padding: 8px 16px;
+  border-radius: 10px;
   font-weight: 600;
 }
 
