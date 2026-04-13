@@ -10,7 +10,7 @@
     
     <div class="profile-content">
       <div class="avatar-display">
-        <div class="initials-circle">JP</div>
+        <div class="initials-circle"> {{ userInitials }} </div>
       </div>
 
       <div class="form-group">
