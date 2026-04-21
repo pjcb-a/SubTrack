@@ -12,7 +12,10 @@ from dotenv import load_dotenv
 
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+env_path = os.path.join(BASE_DIR, ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
 LOCAL_DEV_CORS_ORIGINS = [
     r"^https?://localhost(?::\d+)?$",
@@ -61,5 +64,5 @@ class Config:
     JSON_SORT_KEYS = False
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = os.getenv("FLASK_ENV") == "production"
     CORS_ORIGINS = get_cors_origins()
