@@ -188,6 +188,7 @@ const formatPaymentDate = (value) => formatLongDate(parseDateString(value));
   border: 1px solid var(--app-border);
   backdrop-filter: blur(16px);
   transition: background-color 0.3s ease, transform 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .calendar-container:hover {

@@ -1,10 +1,10 @@
 import { ref } from 'vue';
 import { apiRequest } from '../lib/api';
 
-const MOCK_SUBSCRIPTIONS = [
-  { id: 1, name: 'Netflix', category: 'Entertainment', amount: 1500, cycle: 'monthly', dueDate: '2026-04-02', notifyDays: 3 },
-  { id: 2, name: 'Spotify', category: 'Music', amount: 2500, cycle: 'monthly', dueDate: '2026-04-05', notifyDays: 1 },
-];
+// const MOCK_SUBSCRIPTIONS = [
+//   { id: 1, name: 'Netflix', category: 'Entertainment', amount: 1500, cycle: 'monthly', dueDate: '2026-04-02', notifyDays: 3 },
+//   { id: 2, name: 'Spotify', category: 'Music', amount: 2500, cycle: 'monthly', dueDate: '2026-04-05', notifyDays: 1 },
+// ];
 
 const CATEGORY_ID_BY_NAME = {
   Entertainment: 1,
@@ -37,7 +37,7 @@ function formatUiSubscription(subscription) {
     startDate: subscription.start_date,
     dueDay: subscription.due_day,
     isActive: subscription.is_active,
-    deletedAt: subscription.deleted_at,
+    deletedAt: subscription.deleted_at || subscription.updated_at,
   };
 }
 
@@ -67,14 +67,14 @@ function buildApiPayload(subscription) {
   };
 }
 
-async function seedMockSubscriptionsForUser() {
-  for (const mockSubscription of MOCK_SUBSCRIPTIONS) {
-    await apiRequest('/api/subscriptions', {
-      method: 'POST',
-      body: buildApiPayload(mockSubscription),
-    });
-  }
-}
+// async function seedMockSubscriptionsForUser() {
+//   for (const mockSubscription of MOCK_SUBSCRIPTIONS) {
+//     await apiRequest('/api/subscriptions', {
+//       method: 'POST',
+//       body: buildApiPayload(mockSubscription),
+//     });
+//   }
+// }
 
 async function fetchSubscriptions({ seedIfEmpty = true, force = false } = {}) {
   if (fetchPromise && !force) {
