@@ -5,50 +5,87 @@
 <template>
   <section class="settings-card">
     <div class="card-header">
-      <h3><i class="fa-solid fa-earth-asia"></i> Regional & Appearance</h3>
+      <h3><i class="fa-solid fa-credit-card"></i> Subscription Constraint</h3>
     </div>
 
-    <div class="pref-grid">
-      <div class="field">
-        <label>Primary Currency</label>
-        <select class="settings-select">
-          <option value="PHP">Philippine Peso (₱)</option>
-          <option value="USD">US Dollar ($)</option>
-        </select>
+    <div class="data-grid">
+      <div class="data-panel">
+        <i class="fa-solid fa-file-invoice"></i>
+        <div class="panel-text">
+          <span>Soft Cap</span>
+          <p>Freedom to exceed your subscription spending limits.</p>
+        </div>
+        <button class="settings-btn-secondary">Soft Cap</button>
       </div>
 
-      <div class="field">
-        <label>Timezone</label>
-        <select class="settings-select">
-          <option>Asia/Manila (GMT+8)</option>
-        </select>
+      <div class="data-panel">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <div class="panel-text">
+          <span>Hard Cap</span>
+          <p>Set a strict limit on your subscription spending.</p>
+        </div>
+        <button class="settings-btn-secondary">Hard Cap</button>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-.pref-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+.data-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 15px; 
+  margin-bottom: 25px; }
+
+.data-panel {
+  background: var(--app-surface-alt); 
+  padding: 20px; 
+  border-radius: 16px;
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  text-align: center; 
+  gap: 12px;
 }
-.field label {
-  display: block;
-  font-size: 0.85rem;
-  margin-bottom: 8px;
-  color: var(--app-text-muted);
+
+.data-panel i { 
+  font-size: 1.4rem; 
+  color: var(--app-accent); 
 }
-.settings-select {
-  width: 100%;
-  padding: 12px;
+
+.panel-text span { 
+  font-weight: 700; 
+  color: var(--app-text); 
+  font-size: 0.9rem; 
+}
+
+.panel-text p { 
+  font-size: 0.75rem; 
+  color: var(--app-text-muted); 
+  margin-top: 4px; 
+}
+
+.settings-btn-secondary {
+  background-color: var(--app-surface-alt);
+  border: 2px solid var(--app-border);
+  color: var(--app-text); 
+  padding: 10px 20px; 
   border-radius: 12px;
-  background: var(--app-surface-alt);
-  border: 1px solid var(--app-border);
-  color: var(--app-text);
-  cursor: pointer;
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: 0.2s;
 }
-@media (max-width: 600px) {
-  .pref-grid { grid-template-columns: 1fr; }
+
+.settings-btn-secondary:hover {
+  background-color: var(--app-accent-strong);
+  color: #f5f5f5;
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 700px) {
+  .data-grid { 
+    grid-template-columns: 1fr; 
+  }
 }
 </style>
