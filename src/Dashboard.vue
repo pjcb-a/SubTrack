@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
   background: var(--app-bg);
   overflow: hidden;
   position: relative;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease;    
 }
 
 .sidebar-backdrop {
