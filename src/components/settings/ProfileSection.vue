@@ -70,7 +70,7 @@
 }
 
 .update-btn:hover {
-  background: var();
+  background: var(--app-accent-strong);
 }
 @media (max-width: 600px) {
   .profile-content { flex-direction: column; text-align: center; }
