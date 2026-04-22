@@ -45,6 +45,8 @@ def create_app():
         app,
         supports_credentials=True,
         origins=app.config["CORS_ORIGINS"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],                                                                                                           
+        allow_headers=["Content-Type", "Authorization"],
     )
 
     # Each blueprint groups related endpoints.

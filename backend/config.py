@@ -13,16 +13,12 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-env_path = os.path.join(BASE_DIR, ".env")
-if os.path.exists(env_path):
-    load_dotenv(env_path)
+if os.path.exists(os.path.join(BASE_DIR, ".env")):
+    load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 LOCAL_DEV_CORS_ORIGINS = [
-    r"^https?://localhost(?::\d+)?$",
-    r"^https?://127\.0\.0\.1(?::\d+)?$",
-    r"^https?://192\.168\.\d{1,3}\.\d{1,3}(?::\d+)?$",
-    r"^https?://10\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?$",
-    r"^https?://172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}(?::\d+)?$",
+    "http://127.0.0.1:5173", 
+    "http://localhost:5173",
 ]
 
 
@@ -55,7 +51,10 @@ class Config:
     - `SQLALCHEMY_DATABASE_URI` chooses which database stores app data
     - `CORS_ORIGINS` controls which frontend hosts can talk to the backend
     """
-    SECRET_KEY = os.getenv("SECRET_KEY", "subtrack-dev-secret")
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    if not SECRET_KEY:
+        SECRET_KEY = "subtrack-dev-secret"  # Fallback for local dev only
+
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         f"sqlite:///{os.path.join(BASE_DIR, 'subtrack.db')}",
@@ -64,5 +63,6 @@ class Config:
     JSON_SORT_KEYS = False
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    # Set to True in production when using HTTPS
     SESSION_COOKIE_SECURE = os.getenv("FLASK_ENV") == "production"
     CORS_ORIGINS = get_cors_origins()
