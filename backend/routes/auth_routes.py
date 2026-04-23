@@ -92,7 +92,7 @@ def login():
     ).first()
 
     if not user or not check_password_hash(user.password_hash, password):
-        return jsonify({"error": "Invalid username/email or password"}), 401
+        return jsonify({"error": "Invalid credentials"}), 401
 
     session.clear()
     session["user_id"] = user.user_id
