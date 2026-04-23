@@ -29,3 +29,6 @@ __pycache__/
 backend/venv/
 backend/.env
 backend/subtrack.db
+
+backend/instance/*.db
+backend/instance/*.db.backup
