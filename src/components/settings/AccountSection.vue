@@ -1,5 +1,56 @@
 <script setup>
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '../../composables/useAuth';
+import { useUserSettings } from '../../composables/useUserSettings';
 
+const router = useRouter();
+const { currentUser } = useAuth();
+const { changePassword, deleteAccount, settingsSaving } = useUserSettings();
+const currentPassword = ref('');
+const newPassword = ref('');
+const passwordError = ref('');
+const passwordMessage = ref('');
+const deleteError = ref('');
+
+const emailAddress = computed(() => currentUser.value?.email ?? 'No email');
+
+const submitPasswordChange = async () => {
+  passwordError.value = '';
+  passwordMessage.value = '';
+
+  if (!currentPassword.value || !newPassword.value) {
+    passwordError.value = 'Current password and new password are required.';
+    return;
+  }
+
+  try {
+    await changePassword({
+      current_password: currentPassword.value,
+      new_password: newPassword.value,
+    });
+    currentPassword.value = '';
+    newPassword.value = '';
+    passwordMessage.value = 'Password updated.';
+  } catch (error) {
+    passwordError.value = error.message;
+  }
+};
+
+const handleDeleteAccount = async () => {
+  deleteError.value = '';
+
+  if (!window.confirm('Delete your account and all saved subscription data?')) {
+    return;
+  }
+
+  try {
+    await deleteAccount();
+    router.push('/');
+  } catch (error) {
+    deleteError.value = error.message;
+  }
+};
 </script>
 
 <template>
@@ -12,22 +63,39 @@
       <div class="input-group">
         <label>Email Address</label>
         <div class="input-with-icon">
-          <input type="email" class="settings-input" value="johnpaul@example.com" readonly />
+          <input type="email" class="settings-input" :value="emailAddress" readonly />
           <i class="fa-solid fa-lock"></i>
         </div>
         <p class="input-help">Email cannot be changed directly for security.</p>
       </div>
 
+      <div class="input-group">
+        <label>Current Password</label>
+        <input v-model="currentPassword" type="password" class="settings-input" />
+      </div>
+
+      <div class="input-group">
+        <label>New Password</label>
+        <input v-model="newPassword" type="password" class="settings-input" />
+        <p v-if="passwordError" class="feedback error">{{ passwordError }}</p>
+        <p v-else-if="passwordMessage" class="feedback success">{{ passwordMessage }}</p>
+      </div>
+
       <div class="action-row">
-        <button class="settings-btn-secondary">Change Password</button>
+        <button class="settings-btn-secondary" :disabled="settingsSaving" @click="submitPasswordChange">
+          {{ settingsSaving ? 'Saving...' : 'Change Password' }}
+        </button>
       </div>
 
       <div class="danger-zone">
         <div class="danger-info">
           <h4>Danger Zone</h4>
           <p>Permanently delete your account and all subscription data. This action is irreversible.</p>
+          <p v-if="deleteError" class="feedback error">{{ deleteError }}</p>
         </div>
-        <button class="settings-btn-danger">Delete Account</button>
+        <button class="settings-btn-danger" :disabled="settingsSaving" @click="handleDeleteAccount">
+          Delete Account
+        </button>
       </div>
     </div>
   </section>
@@ -88,6 +156,12 @@
   transition: 0.2s;
 }
 
+.settings-btn-secondary:disabled,
+.settings-btn-danger:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .danger-zone {
   margin-top: 20px; 
   padding-top: 20px; 
@@ -123,6 +197,18 @@
 .settings-btn-danger:hover { 
     background: var(--app-danger); 
     color: white; 
+}
+
+.feedback {
+  font-size: 0.8rem;
+}
+
+.feedback.error {
+  color: var(--app-danger);
+}
+
+.feedback.success {
+  color: var(--app-accent);
 }
 
 @media (max-width: 600px) {

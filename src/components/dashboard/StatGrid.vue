@@ -7,12 +7,14 @@ import {
   formatMonthDay,
   parseDateString,
 } from '../../utils/subscriptionDates';
+import { getRecurrenceLabel } from '../../utils/subscriptionRecurrence';
 
 const { subscriptions, currentFilter } = useSubscriptions();
 const cycleLabels = {
+  daily: 'Daily',
   weekly: 'Weekly',
   monthly: 'Monthly',
-  annual: 'Annual',
+  yearly: 'Yearly',
 };
 
 const filteredSubs = computed(() => {
@@ -30,13 +32,15 @@ const filteredSubs = computed(() => {
 });
 
 const totalActive = computed(() => subscriptions.value.length);
+const dailyCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'daily').length);
 const weeklyCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'weekly').length);
 const monthlyCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'monthly').length);
-const annualCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'annual').length);
+const yearlyCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'yearly').length);
 
+const dailyPercent = computed(() => totalActive.value === 0 ? 0 : (dailyCount.value / totalActive.value) * 100);
 const weeklyPercent = computed(() => totalActive.value === 0 ? 0 : (weeklyCount.value / totalActive.value) * 100);
 const monthlyPercent = computed(() => totalActive.value === 0 ? 0 : (monthlyCount.value / totalActive.value) * 100);
-const annualPercent = computed(() => totalActive.value === 0 ? 0 : (annualCount.value / totalActive.value) * 100);
+const yearlyPercent = computed(() => totalActive.value === 0 ? 0 : (yearlyCount.value / totalActive.value) * 100);
 const dueSoonCount = computed(() => filteredSubs.value.filter((sub) => {
   const diff = differenceInDays(sub.dueDate);
   return diff >= 0 && diff <= 7;
@@ -53,18 +57,22 @@ const totalAnnualSpend = computed(() => {
   //  Calculate the total for only those filtered items
   const total = filteredList.reduce((acc, sub) => {
     const amount = Number(sub.amount) || 0;
+    const interval = Number(sub.recurrenceInterval) || 1;
 
-    // Calculate the impact for the selected category
+    if (sub.recurrenceUnit === 'day') {
+      return acc + ((amount * 365.25) / interval);
+    }
+
     if (sub.cycle === 'weekly') {
-      return acc + (amount * 7);
+      return acc + ((amount * (365.25 / 7)) / interval);
     }
  
     if (sub.cycle === 'monthly') {
-      return acc + (amount * 12);
+      return acc + ((amount * 12) / interval);
     }
 
-    if(sub.cycle === 'annual') {
-      return acc + amount;
+    if (sub.cycle === 'yearly') {
+      return acc + (amount / interval);
     }
 
     return acc + amount;
@@ -73,7 +81,15 @@ const totalAnnualSpend = computed(() => {
   return formatCurrency(total);
 });
 
-const getCycleLabel = (cycle) => cycleLabels[cycle] ?? 'Custom';
+const getCycleLabel = (subscription) => getRecurrenceLabel(
+  subscription.recurrenceUnit,
+  subscription.recurrenceInterval,
+);
+
+const filterHeadingLabel = computed(() => cycleLabels[currentFilter.value] ?? 'All');
+const spendHeadingLabel = computed(() => (currentFilter.value === 'all'
+  ? 'Estimated Annual Spend'
+  : `Estimated Annual ${filterHeadingLabel.value} Spend`));
 
 const getDueLabel = (dueDate) => {
   const dayDifference = differenceInDays(dueDate);
@@ -98,7 +114,7 @@ const getDueLabel = (dueDate) => {
   <!-- BLOCK 1: Upcoming Payments -->
   <div class="stats-grid">
     <div id="upcoming-payments-card" class="stat-card upcoming-payments">
-      <h3>Upcoming ({{ currentFilter === 'all' ? 'All' : currentFilter }})</h3>
+      <h3>Upcoming ({{ filterHeadingLabel }})</h3>
       <p class="stat-meta">{{ dueSoonCount }} renewal{{ dueSoonCount === 1 ? '' : 's' }} in the next 7 days</p>
 
       <TransitionGroup name="subscription-list" tag="div" class="stat-content">
@@ -108,7 +124,7 @@ const getDueLabel = (dueDate) => {
           <div class="sub-details">
             <div class="sub-heading">
               <p class="sub-name">{{ sub.name }}</p>
-              <span class="cycle-pill" :class="sub.cycle">{{ getCycleLabel(sub.cycle) }}</span>
+              <span class="cycle-pill" :class="sub.cycle">{{ getCycleLabel(sub) }}</span>
             </div>
             <p class="sub-date">{{ getDueLabel(sub.dueDate) }} • {{ formatMonthDay(sub.dueDate) }}</p>
           </div>
@@ -129,12 +145,18 @@ const getDueLabel = (dueDate) => {
       </div>
       
       <div class="progress-container">
+        <div class="progress-bar daily" :style="{ width: dailyPercent + '%' }"></div>
         <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
         <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
-        <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
+        <div class="progress-bar yearly" :style="{ width: yearlyPercent + '%' }"></div>
       </div>
 
       <div class="legend-grid">
+        <div class="legend-item">
+          <span class="dot daily-dot"></span>
+          <span class="legend-text">Daily ({{ dailyCount }})</span>
+          <span class="legend-value">{{ Math.round(dailyPercent) }}%</span>
+        </div>
         <div class="legend-item">
           <span class="dot weekly-dot"></span>
           <span class="legend-text">Weekly ({{ weeklyCount }})</span>
@@ -146,16 +168,16 @@ const getDueLabel = (dueDate) => {
           <span class="legend-value">{{ Math.round(monthlyPercent) }}%</span>
         </div>
         <div class="legend-item">
-          <span class="dot annual-dot"></span>
-          <span class="legend-text">Annual ({{ annualCount }})</span>
-          <span class="legend-value">{{ Math.round(annualPercent) }}%</span>
+          <span class="dot yearly-dot"></span>
+          <span class="legend-text">Yearly ({{ yearlyCount }})</span>
+          <span class="legend-value">{{ Math.round(yearlyPercent) }}%</span>
         </div>
       </div>
     </div>
 
   <!-- BLOCK 3: Total Spend -->
     <div class="stat-card total-spend">
-      <h3>Total {{ currentFilter === 'all' ? 'All' : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1) }} Spend</h3>
+      <h3>{{ spendHeadingLabel }}</h3>
       <p class="total-amount">{{ totalAnnualSpend }}</p>
       <p v-if="nextRenewal" class="comparison">
         Next renewal: {{ nextRenewal.name }} on {{ formatMonthDay(nextRenewal.dueDate) }}
@@ -317,11 +339,16 @@ const getDueLabel = (dueDate) => {
   color: #008549;
 }
 
+.cycle-pill.daily {
+  background: rgba(27, 127, 58, 0.14);
+  color: #1b7f3a;
+}
+
 .cycle-pill.monthly {
   background: var(--app-accent-soft);
 }
 
-.cycle-pill.annual {
+.cycle-pill.yearly {
   background: color-mix(in srgb, var(--app-text-muted) 18%, transparent);
   color: var(--app-text-muted);
 }
@@ -354,6 +381,11 @@ const getDueLabel = (dueDate) => {
   margin-top: 15px;
 }
 
+.progress-bar.daily {
+  background-color: #1b7f3a;
+  transition: width 0.3s ease;
+}
+
 .progress-bar.weekly {
   background-color: #00a859;
   transition: width 0.3s ease;
@@ -364,7 +396,7 @@ const getDueLabel = (dueDate) => {
   transition: width 0.3s ease;
 }
 
-.progress-bar.annual {
+.progress-bar.yearly {
   background-color: #bcbcbc;
   transition: width 0.3s ease;
 }
@@ -392,6 +424,10 @@ const getDueLabel = (dueDate) => {
   margin-right: 8px;
 }
 
+.daily-dot {
+  background-color: #1b7f3a;
+}
+
 .weekly-dot {
   background-color: #00a859;
 }
@@ -400,7 +436,7 @@ const getDueLabel = (dueDate) => {
   background-color: #004d26;
 }
 
-.annual-dot {
+.yearly-dot {
   background-color: #bcbcbc;
 }
 

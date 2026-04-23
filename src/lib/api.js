@@ -18,12 +18,13 @@ function getDefaultApiBaseUrl() {
   return FALLBACK_API_BASE_URL;
 }
 
-function getApiBaseUrl() {
+export function getApiBaseUrl() {
   return (import.meta.env.VITE_API_BASE_URL || getDefaultApiBaseUrl()).replace(/\/$/, '');
 }
 
 export async function apiRequest(path, options = {}) {
   const { body, headers, ...restOptions } = options;
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
 
   let response;
 
@@ -31,10 +32,10 @@ export async function apiRequest(path, options = {}) {
     response = await fetch(`${getApiBaseUrl()}${path}`, {
       credentials: 'include',
       headers: {
-        ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...(body && !isFormData ? { 'Content-Type': 'application/json' } : {}),
         ...headers,
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
       ...restOptions,
     });
   } catch {
@@ -47,12 +48,16 @@ export async function apiRequest(path, options = {}) {
 
   const responseText = await response.text();
   const responseData = responseText ? JSON.parse(responseText) : {};
+  const firstFieldError = responseData.errors
+    ? Object.values(responseData.errors).find((value) => typeof value === 'string')
+    : '';
 
   if (!response.ok) {
     const error = new Error(
       responseData.error
       || responseData.message
       || responseData.errors?.general
+      || firstFieldError
       || 'Request failed.',
     );
     error.status = response.status;

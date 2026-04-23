@@ -1,13 +1,20 @@
 <script setup>
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import ProfileSection from './ProfileSection.vue';
 import AccountSection from './AccountSection.vue';
 import PreferencesSection from './PreferencesSection.vue';
 import NotificationSection from './NotificationSection.vue';
 import DataSection from './DataSection.vue';
+import { useUserSettings } from '../../composables/useUserSettings';
 
 const router = useRouter();
 const goBack = () => router.push('/dashboard');
+const { fetchSettings, settingsLoading, settingsError } = useUserSettings();
+
+onMounted(() => {
+  fetchSettings().catch(() => {});
+});
 </script>
 
 <template>
@@ -19,7 +26,11 @@ const goBack = () => router.push('/dashboard');
             <h1><i class="fa-solid fa-gear"></i> Settings</h1>
         </header>
 
-        <div class="settings-stack">
+        <p v-if="settingsError" class="settings-error">{{ settingsError }}</p>
+
+        <div v-if="settingsLoading" class="settings-card settings-state">Loading settings...</div>
+
+        <div v-else class="settings-stack">
             <ProfileSection />
             <AccountSection />
             <PreferencesSection />
@@ -82,6 +93,16 @@ const goBack = () => router.push('/dashboard');
   flex-direction: column;
   gap: 20px;
   padding-bottom: 60px;
+}
+
+.settings-state {
+  color: var(--app-text-muted);
+  text-align: center;
+}
+
+.settings-error {
+  color: var(--app-danger);
+  margin-bottom: 18px;
 }
 
 .back-btn {

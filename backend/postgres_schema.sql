@@ -8,6 +8,20 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS user_settings (
+    user_setting_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
+    renewal_reminders_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    monthly_reports_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    spending_cap_mode VARCHAR(16) NOT NULL DEFAULT 'none'
+        CHECK (spending_cap_mode IN ('none', 'soft', 'hard')),
+    spending_cap_amount NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (spending_cap_amount >= 0),
+    soft_cap_overage_percent NUMERIC(5, 2) NOT NULL DEFAULT 0
+        CHECK (soft_cap_overage_percent >= 0),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS categories (
     category_id SERIAL PRIMARY KEY,
     category_name VARCHAR(100) UNIQUE NOT NULL
@@ -20,10 +34,15 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     subscription_name VARCHAR(120) NOT NULL,
     amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
     billing_cycle VARCHAR(20) NOT NULL CHECK (
-        billing_cycle IN ('weekly', 'monthly', 'annual')
+        billing_cycle IN ('daily', 'weekly', 'monthly', 'annual', 'custom')
     ),
     start_date DATE NOT NULL,
     due_day INTEGER NOT NULL CHECK (due_day BETWEEN 1 AND 31),
+    recurrence_unit VARCHAR(16) NOT NULL CHECK (
+        recurrence_unit IN ('day', 'week', 'month', 'year')
+    ),
+    recurrence_interval INTEGER NOT NULL CHECK (recurrence_interval >= 1),
+    anchor_date DATE NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     deleted_at TIMESTAMP NULL
 );

@@ -1,8 +1,15 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
+import { SUBSCRIPTION_CATEGORIES, getDefaultCategoryId } from '../../utils/subscriptionCategories';
+import {
+  buildRecurrenceForm,
+  buildRecurrenceFromForm,
+  RECURRENCE_PRESET_OPTIONS,
+  RECURRENCE_UNIT_OPTIONS,
+} from '../../utils/subscriptionRecurrence';
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'saved']);
 const { subscriptions, updateSubscription } = useSubscriptions();
 
 // State to track which subscription the user wants to edit
@@ -11,11 +18,13 @@ const selectedId = ref('');
 // State to hold the form data
 const editData = ref({
   name: '',
-  category: '',
+  categoryId: getDefaultCategoryId(),
   amount: null,
-  cycle: 'monthly',
-  dueDate: '',
-  notifyDays: 3
+  recurrencePreset: 'monthly',
+  customRecurrenceUnit: 'day',
+  customRecurrenceInterval: 2,
+  anchorDate: '',
+  notifyDays: 3,
 });
 const submitError = ref('');
 
@@ -25,12 +34,22 @@ watch(selectedId, (newId) => {
   if (newId) {
     const subToEdit = subscriptions.value.find(s => s.id === newId);
     if (subToEdit) {
-      // Create a copy so we don't edit the live data until "Save" is clicked
-      editData.value = { ...subToEdit };
+      editData.value = {
+        ...subToEdit,
+        ...buildRecurrenceForm(subToEdit),
+      };
     }
   } else {
-    // Reset if they deselect
-    editData.value = { name: '', category: '', amount: null, cycle: 'monthly', dueDate: '', notifyDays: 3 };
+    editData.value = {
+      name: '',
+      categoryId: getDefaultCategoryId(),
+      amount: null,
+      recurrencePreset: 'monthly',
+      customRecurrenceUnit: 'day',
+      customRecurrenceInterval: 2,
+      anchorDate: '',
+      notifyDays: 3,
+    };
   }
 });
 
@@ -41,13 +60,23 @@ const submitUpdate = async () => {
     submitError.value = 'Please select a subscription to update.';
     return;
   }
-  if (!editData.value.name || !editData.value.amount || !editData.value.dueDate) {
+  if (!editData.value.name || !editData.value.amount || !editData.value.anchorDate) {
     submitError.value = 'Please fill in all required fields.';
     return;
   }
+
+  const recurrence = buildRecurrenceFromForm(editData.value);
   
   try {
-    await updateSubscription(selectedId.value, { ...editData.value });
+    const result = await updateSubscription(selectedId.value, {
+      ...editData.value,
+      recurrenceUnit: recurrence.recurrenceUnit,
+      recurrenceInterval: recurrence.recurrenceInterval,
+    });
+
+    if (result.capWarning) {
+      emit('saved', { tone: 'warning', message: result.capWarning.message });
+    }
   } catch (error) {
     submitError.value = error.message;
     return;
@@ -80,22 +109,59 @@ const submitUpdate = async () => {
         </div>
 
         <div class="input-group">
+          <label>Category</label>
+          <select v-model="editData.categoryId">
+            <option
+              v-for="category in SUBSCRIPTION_CATEGORIES"
+              :key="category.id"
+              :value="category.id"
+            >
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="input-group">
           <label>Amount </label>
           <input v-model="editData.amount" type="number" step="0.01" />
         </div>
 
         <div class="input-group">
-          <label>Cycle</label>
-          <select v-model="editData.cycle">
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="annual">Annual</option>
+          <label>Schedule</label>
+          <select v-model="editData.recurrencePreset">
+            <option
+              v-for="option in RECURRENCE_PRESET_OPTIONS"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
           </select>
         </div>
 
+        <div v-if="editData.recurrencePreset === 'custom'" class="custom-grid">
+          <div class="input-group">
+            <label>Every</label>
+            <input v-model="editData.customRecurrenceInterval" type="number" min="1" step="1" />
+          </div>
+
+          <div class="input-group">
+            <label>Unit</label>
+            <select v-model="editData.customRecurrenceUnit">
+              <option
+                v-for="option in RECURRENCE_UNIT_OPTIONS"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
         <div class="input-group">
-          <label>Due Date</label>
-          <input v-model="editData.dueDate" type="date" />
+          <label>Anchor Date</label>
+          <input v-model="editData.anchorDate" type="date" />
         </div>
       </div>
       <div v-else class="empty-state">
@@ -177,6 +243,12 @@ const submitUpdate = async () => {
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+.custom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .empty-state {

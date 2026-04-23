@@ -1,5 +1,36 @@
 <script setup>
+import { ref, watch } from 'vue';
+import { useUserSettings } from '../../composables/useUserSettings';
 
+const { settings, updateSettings, settingsSaving } = useUserSettings();
+const renewalRemindersEnabled = ref(true);
+const monthlyReportsEnabled = ref(false);
+const localError = ref('');
+const localMessage = ref('');
+
+watch(
+  settings,
+  (nextSettings) => {
+    renewalRemindersEnabled.value = nextSettings?.renewal_reminders_enabled ?? true;
+    monthlyReportsEnabled.value = nextSettings?.monthly_reports_enabled ?? false;
+  },
+  { immediate: true },
+);
+
+const saveNotifications = async () => {
+  localError.value = '';
+  localMessage.value = '';
+
+  try {
+    await updateSettings({
+      renewal_reminders_enabled: renewalRemindersEnabled.value,
+      monthly_reports_enabled: monthlyReportsEnabled.value,
+    });
+    localMessage.value = 'Notification settings updated.';
+  } catch (error) {
+    localError.value = error.message;
+  }
+};
 </script>
 
 <template>
@@ -15,7 +46,7 @@
           <p>Get notified 3 days before a subscription is due.</p>
         </div>
         <label class="switch">
-          <input type="checkbox">
+          <input v-model="renewalRemindersEnabled" type="checkbox">
           <span class="slider"></span>
         </label>
       </div>
@@ -26,11 +57,18 @@
           <p>Receive a summary of your spending every month.</p>
         </div>
         <label class="switch">
-          <input type="checkbox">
+          <input v-model="monthlyReportsEnabled" type="checkbox">
           <span class="slider"></span>
         </label>
       </div>
     </div>
+
+    <p v-if="localError" class="feedback error">{{ localError }}</p>
+    <p v-else-if="localMessage" class="feedback success">{{ localMessage }}</p>
+
+    <button class="save-btn" :disabled="settingsSaving" @click="saveNotifications">
+      {{ settingsSaving ? 'Saving...' : 'Save Notification Settings' }}
+    </button>
   </section>
 </template>
 
@@ -96,5 +134,33 @@ input:checked + .slider {
 
 input:checked + .slider:before { 
     transform: translateX(20px); 
+}
+
+.save-btn {
+  margin-top: 18px;
+  background: var(--app-accent);
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.feedback {
+  font-size: 0.82rem;
+}
+
+.feedback.error {
+  color: var(--app-danger);
+}
+
+.feedback.success {
+  color: var(--app-accent);
 }
 </style>
