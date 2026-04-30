@@ -22,6 +22,16 @@ LOCAL_DEV_CORS_ORIGINS = [
 ]
 
 
+def get_bool_env(name, default=False):
+    """Parse a boolean env flag using common truthy string values."""
+    raw_value = os.getenv(name)
+
+    if raw_value is None:
+        return default
+
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def get_cors_origins():
     """Return the list of frontend URLs allowed to access the API.
 
@@ -63,6 +73,7 @@ class Config:
     JSON_SORT_KEYS = False
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    # Set to True in production when using HTTPS
-    SESSION_COOKIE_SECURE = os.getenv("FLASK_ENV") == "production"
+    # Keep local HTTP development usable by default. Production deployments
+    # should opt in explicitly through `SESSION_COOKIE_SECURE=true`.
+    SESSION_COOKIE_SECURE = get_bool_env("SESSION_COOKIE_SECURE", default=False)
     CORS_ORIGINS = get_cors_origins()

@@ -3,152 +3,207 @@ import { ref } from 'vue';
 import LoginForm from './LoginForm.vue';
 import RegisterForm from './RegisterForm.vue';
 
-const isLogin = ref(false);
+const isLogin = ref(true);
 </script>
 
-  <!-- Dynamic wrapper for both Register and Login page to render smoothly -->
-  <template>
-  <div class="auth-wrapper">
+<template>
+  <div class="auth-shell">
     <div class="auth-card" :class="{ 'is-register-active': !isLogin }">
-      
       <div class="forms-bg-container">
-        <div class="form-section login-section">
-          <LoginForm />
-        </div>
         <div class="form-section register-section">
           <RegisterForm />
+        </div>
+        <div class="form-section login-section">
+          <LoginForm />
         </div>
       </div>
 
       <div class="overlay-container">
         <div class="overlay">
-          <div class="overlay-content">
-            <h1>{{ isLogin ? 'Back on Track' : 'Welcome To SubTrack' }}</h1>
-            <p>{{ isLogin ? 'Register now and enjoy our site' : 'Login with username and password' }}</p>
-            <button @click="isLogin = !isLogin" class="ghost-btn">
-              {{ isLogin ? 'Register' : 'Login' }}
+          <div class="brand-mark">SUBTRACK</div>
+          <div class="overlay-copy">
+            <span class="eyebrow">{{ isLogin ? 'Built to manage' : 'Get started' }}</span>
+            <h1>{{ isLogin ? 'Recurring Payments, Clearly Seen.' : 'Build Your Own Subscription Space.' }}</h1>
+            <p>
+              {{
+                isLogin
+                  ? 'Track renewals, control spending caps, and keep your subscription history organized in one clean system.'
+                  : 'Register once and start with a clean account that reflects only your own real subscription data.'
+              }}
+            </p>
+          </div>
+
+          <div class="overlay-actions">
+            <p>{{ isLogin ? 'Need an account?' : 'Already have an account?' }}</p>
+            <button type="button" class="ghost-btn" @click="isLogin = !isLogin">
+              {{ isLogin ? 'Create account' : 'Sign in' }}
             </button>
           </div>
+
+          <p class="overlay-footer">
+            {{
+              isLogin
+                ? 'One workspace for renewals, spending limits, and account control.'
+                : 'Switch back to sign in once your account is ready.'
+            }}
+          </p>
         </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <style scoped>
-.auth-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.auth-shell {
   min-height: 100vh;
-  background-color: #1a1a1a; /* Dark background to make the card pop */
-  padding: 20px;
+  width: 100%;
+  background: #f3f5f1;
 }
 
 .auth-card {
   position: relative;
-  display: flex;
   width: 100%;
-  max-width: 1000px;
-  height: 600px;
-  background: white;
-  border-radius: 30px;
-  overflow: hidden; /* Clips the forms behind the green panel */
-  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
 }
 
-/* This container holds both forms in a row */
 .forms-bg-container {
-  display: flex;
-  width: 100%;
-  height: 100%;
+  display: contents;
 }
 
 .form-section {
-  flex: 1; /* Each takes exactly 50% */
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1;
+  justify-content: center;
+  padding: 64px 72px;
+  background:
+    radial-gradient(circle at top left, rgba(13, 106, 69, 0.06), transparent 28%),
+    linear-gradient(180deg, #f7f8f5 0%, #f0f4ef 100%);
 }
 
-/* THE SLIDER */
 .overlay-container {
   position: absolute;
-  top: 0;
-  left: 50%; /* Default position covering Register side */
+  inset: 0 auto 0 0;
   width: 50%;
   height: 100%;
   z-index: 10;
   transition: transform 0.6s ease-in-out;
 }
 
-/* Move left to cover Login side when Registering */
 .is-register-active .overlay-container {
-  transform: translateX(-100%);
+  transform: translateX(100%);
 }
 
 .overlay {
-  background-color: #004d26;
-  color: white;
   width: 100%;
   height: 100%;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 56px 56px 60px;
+  color: #f7fbf8;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(133, 205, 170, 0.18), transparent 18%),
+    radial-gradient(circle at 72% 70%, rgba(255, 255, 255, 0.08), transparent 24%),
+    linear-gradient(180deg, #004d26 0%, #0a5f35 52%, #0d6a45 100%);
 }
 
-.overlay-content {
-  padding: 40px;
-}
-
-.overlay h1{
-  font-size: clamp(2rem, 4vw, 3rem); /* Responsive font that won't overflow */
+.brand-mark {
+  font-size: 0.92rem;
   font-weight: 800;
-  margin-bottom: 10px;
-  font-family: 'Montserrat', sans-serif;
-  line-height: 0.9;
+  letter-spacing: 0.36em;
 }
 
-.overlay p {
-  font-family: 'Montserrat', sans-serif;
+.overlay-copy {
+  display: grid;
+  gap: 20px;
+  max-width: 470px;
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(242, 249, 244, 0.72);
+}
+
+.overlay h1 {
+  font-size: clamp(3.2rem, 5vw, 5rem);
+  line-height: 0.96;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.overlay-copy p,
+.overlay-actions p,
+.overlay-footer {
+  font-size: 1rem;
+  line-height: 1.72;
+  color: rgba(244, 249, 245, 0.84);
+}
+
+.overlay-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .ghost-btn {
-  margin-top: 20px;
-  padding: 12px 40px;
-  background: #d1d1d1;
-  color: #004d26;
-  border: none;
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  padding: 12px 20px;
+  font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 .ghost-btn:hover {
-  background: #b1b1b1;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  transform: translateY(-5px);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.34);
 }
 
-/* Tablet/Mobile Fix */
-@media (max-width: 768px) {
+.overlay-footer {
+  color: rgba(244, 249, 245, 0.66);
+}
+
+@media (max-width: 960px) {
   .auth-card {
-    flex-direction: column;
-    height: auto;
+    grid-template-columns: 1fr;
   }
+
+  .forms-bg-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-section {
+    min-height: auto;
+    padding: 32px 18px 36px;
+  }
+
   .overlay-container {
     position: relative;
-    left: 0;
     width: 100%;
-    height: 250px;
     transform: none !important;
+    order: -1;
   }
-  .forms-bg-container {
-    flex-direction: column;
+
+  .overlay {
+    min-height: 380px;
+    padding: 30px 24px 32px;
+  }
+
+  .overlay h1 {
+    font-size: clamp(2.5rem, 11vw, 4rem);
   }
 }
 </style>

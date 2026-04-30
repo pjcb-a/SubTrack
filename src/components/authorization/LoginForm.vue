@@ -30,9 +30,13 @@ const handleLogin = async () => {
 </script>
 
 <template>
-    <!-- Login -->
-    <div class="form-content">
-    <h1>Login</h1>
+  <div class="form-content">
+    <div class="form-intro">
+      <span class="eyebrow">Welcome back</span>
+      <h1>Sign in to SubTrack</h1>
+      <p>Use your username or email to access your dashboard and settings.</p>
+    </div>
+
     <div class="input-group">
         <label for="identifier">Username or Email</label>
         <input type="text" id="identifier" v-model="identifier" placeholder="Enter username or email"/>
@@ -46,85 +50,98 @@ const handleLogin = async () => {
     <p v-if="localError" class="form-error">{{ localError }}</p>
 
     <button @click="handleLogin" class="submit-btn" :disabled="authLoading">
-      {{ authLoading ? 'Logging in...' : 'Login' }}
+      {{ authLoading ? 'Signing in...' : 'Sign In' }}
     </button>
   </div>
 </template>
 
 <style scoped>
-    .form-content {
-  width: 100%;
-  max-width: 340px;
+.form-content {
+  width: min(100%, 560px);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-    font-family: 'Montserrat', sans-serif;
+  gap: 14px;
+  font-family: 'Montserrat', sans-serif;
+}
 
+.form-intro {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6d7f97;
 }
 
 .form-content h1 {
   font-weight: 800;
-  font-size: clamp(3rem, 4vw, 3.2rem); 
-  margin-bottom: 4rem; 
-  letter-spacing: 1.5px;
-  text-align: center;
-  color: #1e5628;
+  font-size: clamp(2.6rem, 4vw, 4rem);
+  letter-spacing: -0.04em;
+  color: var(--app-heading);
+}
+
+.form-intro p {
+  color: var(--app-text-muted);
+  line-height: 1.65;
 }
 
 .input-group {
   width: 100%;
-  margin-bottom: 10px;
   text-align: left;
-  padding: 2px;
 }
 
 .input-group label {
   font-family: 'Montserrat', sans-serif;
   display: block;
-  padding-left: 5px;
-  font-size: 0.9rem;
+  padding-left: 2px;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
   font-weight: 700;
-  color: #666;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .input-group input {
   width: 100%;
-  padding: 10px;
-  background: #e0e0e0;
-  color: black;
-  border: 1px solid transparent;
-  border-radius: 10px;
+  padding: 15px 16px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  border: 1px solid color-mix(in srgb, var(--app-border) 88%, transparent);
+  border-radius: 18px;
   font-family: 'Montserrat', sans-serif;
-  transition: border-color 0.5s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
 .input-group input:focus {
   outline: none;
-  border-color: #1e5628;
+  border-color: var(--app-accent);
   background: #fff;
+  box-shadow: 0 0 0 4px rgba(13, 106, 69, 0.1);
 }
 
 .submit-btn {
-  width: 100%; 
-  max-width: 220px; 
-  align-self: center; 
-  padding: 10px;
-  background-color: #1e5628;
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px 18px;
+  background: linear-gradient(90deg, #0f5d3b 0%, #0d6a45 100%);
   color: #fff;
-  border-radius: 12px;
-  font-size: 1.2rem; 
-  font-weight: 500;
-  letter-spacing: 1px;
-  margin-top: 20px;
+  border-radius: 18px;
+  font-size: 1.05rem;
+  font-weight: 700;
   border: none;
   cursor: pointer;
 }
 
 .submit-btn:hover {
-  background: #2e813d;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  transform: translateY(-5px);
+  box-shadow: 0 14px 24px rgba(13, 106, 69, 0.18);
+  transform: translateY(-2px);
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
@@ -135,9 +152,15 @@ const handleLogin = async () => {
 
 .form-error {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 4px;
   color: #aa3333;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   text-align: left;
+}
+
+@media (max-width: 960px) {
+  .form-content {
+    width: 100%;
+  }
 }
 </style>

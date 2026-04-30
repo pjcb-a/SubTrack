@@ -6,6 +6,8 @@ database, enables cross-origin requests from the frontend, and registers the
 route groups that expose the API consumed by the UI.
 """
 
+import os
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 
@@ -88,4 +90,6 @@ app = create_app()
 
 if __name__ == "__main__":
     # Local development server entrypoint.
-    app.run(debug=True)
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "5001"))
+    app.run(debug=True, host=host, port=port)
