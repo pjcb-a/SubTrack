@@ -136,7 +136,7 @@ async function fetchSubscriptions({ seedIfEmpty = true, force = false } = {}) {
 
   fetchPromise = (async () => {
     try {
-      const [response, historyResponse] = await Promise.all([
+      let [response, historyResponse] = await Promise.all([
         apiRequest('/api/subscriptions'),
         apiRequest('/api/subscriptions/history'),
       ]);
