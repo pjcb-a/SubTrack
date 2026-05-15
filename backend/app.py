@@ -16,7 +16,7 @@ from models import db
 from routes.auth_routes import auth_bp
 from routes.subscription_routes import subscription_bp
 from routes.user_routes import user_bp
-from utils.schema_sync import ensure_subscription_deleted_at_column
+from utils.schema_sync import sync_schema
 from utils.seed_data import seed_default_categories
 
 
@@ -76,6 +76,7 @@ def create_app():
     # Initializes the database on startup so the backend can boot on a clean
     # machine without a manual migration step. The seeded categories are later
     # referenced by subscription creation and editing flows.
+<<<<<<< HEAD
     # Only run DB init locally. 
     # For Production (Vercel), handle migrations/seeding manually or via a script.
     # if not os.getenv("VERCEL"):
@@ -83,6 +84,12 @@ def create_app():
     #         db.create_all()
             # ensure_subscription_deleted_at_column()
             # seed_default_categories()
+=======
+    with app.app_context():
+        db.create_all()
+        sync_schema()
+        seed_default_categories()
+>>>>>>> updates
 
     return app
 

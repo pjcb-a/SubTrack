@@ -38,27 +38,7 @@ function getDefaultApiBaseUrl() {
 }
 
 export function getApiBaseUrl() {
-  const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
-
-  if (typeof window !== 'undefined' && isLocalPageHost(window.location.hostname)) {
-    if (import.meta.env.DEV) {
-      return LOCAL_PROXY_API_BASE_URL;
-    }
-
-    if (!configuredBaseUrl || !isLocalApiUrl(configuredBaseUrl)) {
-      return FALLBACK_API_BASE_URL;
-    }
-  }
-
-  return (configuredBaseUrl || getDefaultApiBaseUrl()).replace(/\/$/, '');
-}
-
-export function buildBackendUnavailableError() {
-  const error = new Error(
-    'Unable to reach the backend. Make sure the Flask server is running.',
-  );
-  error.status = 0;
-  return error;
+  return (import.meta.env.VITE_API_BASE_URL || getDefaultApiBaseUrl()).replace(/\/$/, '');
 }
 
 export async function apiRequest(path, options = {}) {

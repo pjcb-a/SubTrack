@@ -1,5 +1,47 @@
 <script setup>
+import { computed, ref, watch } from 'vue';
+import { useAuth } from '../../composables/useAuth';
+import { useUserSettings } from '../../composables/useUserSettings';
 
+const { currentUser } = useAuth();
+const { updateProfile, settingsSaving } = useUserSettings();
+const username = ref('');
+const localError = ref('');
+const localMessage = ref('');
+
+watch(
+  currentUser,
+  (user) => {
+    username.value = user?.username ?? '';
+  },
+  { immediate: true },
+);
+
+const userInitials = computed(() => {
+  const source = (currentUser.value?.username || 'Guest User').trim();
+  return source
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('');
+});
+
+const saveProfile = async () => {
+  localError.value = '';
+  localMessage.value = '';
+
+  if (!username.value.trim()) {
+    localError.value = 'Username is required.';
+    return;
+  }
+
+  try {
+    await updateProfile(username.value.trim());
+    localMessage.value = 'Profile updated.';
+  } catch (error) {
+    localError.value = error.message;
+  }
+};
 </script>
 
 <template>
@@ -15,8 +57,12 @@
 
       <div class="form-group">
         <label>Username</label>
-        <input type="text" class="settings-input" value=" " />
-        <button class="update-btn">Save Changes</button>
+        <input v-model="username" type="text" class="settings-input" />
+        <p v-if="localError" class="feedback error">{{ localError }}</p>
+        <p v-else-if="localMessage" class="feedback success">{{ localMessage }}</p>
+        <button class="update-btn" :disabled="settingsSaving" @click="saveProfile">
+          {{ settingsSaving ? 'Saving...' : 'Save Changes' }}
+        </button>
       </div>
     </div>
   </section>
@@ -71,6 +117,23 @@
 
 .update-btn:hover {
   background: var(--app-accent-strong);
+}
+
+.update-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.feedback {
+  font-size: 0.82rem;
+}
+
+.feedback.error {
+  color: var(--app-danger);
+}
+
+.feedback.success {
+  color: var(--app-accent);
 }
 @media (max-width: 600px) {
   .profile-content { flex-direction: column; text-align: center; }

@@ -1,32 +1,36 @@
 """
-Subscription CRUD and dashboard support endpoints.
-
-These routes are intended to back the dashboard cards, calendar, upcoming list,
-and summary values in the frontend once the mock store is replaced with API
-requests.
+Subscription CRUD, recurrence, history, and dashboard support endpoints.
 """
 
 from datetime import date, datetime, timedelta
+from types import SimpleNamespace
 
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, g, jsonify, request
 
 from models import db
 from models.notification_setting import NotificationSetting
 from models.subscription import Subscription
 from utils.auth import login_required
-from utils.subscription_utils import calculate_monthly_cost, get_next_due_date
+from utils.subscription_utils import (
+    calculate_active_monthly_total,
+    calculate_monthly_cost,
+    get_occurrences_in_range,
+    get_next_due_date,
+    get_subscription_monthly_equivalent,
+    parse_date,
+)
+from utils.user_settings import evaluate_cap_limit, get_or_create_user_settings
 from utils.validators import validate_subscription_payload
 
 
-subscription_bp = Blueprint("subscriptions", __name__, url_prefix="/api/subscriptions")
+subscription_bp = Blueprint(
+    "subscriptions",
+    __name__,
+    url_prefix="/api/subscriptions",
+)
 
 
 def get_user_subscription_or_404(subscription_id, user_id):
-    """Load a subscription only if it belongs to the logged-in user.
-
-    This prevents users from reading or editing another user's subscription by
-    guessing an ID in the URL.
-    """
     subscription = Subscription.query.filter_by(
         subscription_id=subscription_id,
         user_id=user_id,
@@ -38,15 +42,70 @@ def get_user_subscription_or_404(subscription_id, user_id):
     return subscription, None
 
 
+def get_active_user_subscriptions(user_id):
+    return Subscription.query.filter_by(user_id=user_id, is_active=True).all()
+
+
+def validate_calendar_window(start_date, end_date):
+    if not start_date or not end_date:
+        return {"error": "Both from and to dates are required."}, 400
+
+    if start_date > end_date:
+        return {"error": "The from date must be before or equal to the to date."}, 400
+
+    if (end_date - start_date).days > 366:
+        return {"error": "Calendar requests cannot exceed 366 days."}, 400
+
+    return None, None
+
+
+def build_cap_evaluation(user, candidate_subscription, exclude_subscription_id=None):
+    settings = get_or_create_user_settings(user)
+    current_total = calculate_active_monthly_total(
+        get_active_user_subscriptions(user.user_id),
+        exclude_subscription_id=exclude_subscription_id,
+    )
+
+    if candidate_subscription.is_active is False:
+        return current_total, {"allowed": True, "cap_warning": None}
+
+    projected_total = (
+        current_total + get_subscription_monthly_equivalent(candidate_subscription)
+    )
+    evaluation = evaluate_cap_limit(settings, current_total, projected_total)
+    return current_total, evaluation
+
+
+def build_candidate_subscription(subscription, cleaned_data):
+    candidate = SimpleNamespace(
+        subscription_id=subscription.subscription_id,
+        amount=cleaned_data.get("amount", subscription.amount),
+        recurrence_unit=cleaned_data.get(
+            "recurrence_unit",
+            subscription.recurrence_unit,
+        ),
+        recurrence_interval=cleaned_data.get(
+            "recurrence_interval",
+            subscription.recurrence_interval,
+        ),
+        anchor_date=cleaned_data.get("anchor_date", subscription.anchor_date),
+        start_date=cleaned_data.get("start_date", subscription.start_date),
+        billing_cycle=subscription.billing_cycle,
+        is_active=cleaned_data.get("is_active", subscription.is_active),
+    )
+
+    if not candidate.anchor_date:
+        candidate.anchor_date = candidate.start_date
+
+    if not candidate.start_date:
+        candidate.start_date = candidate.anchor_date
+
+    return candidate
+
+
 @subscription_bp.get("")
 @login_required
 def list_subscriptions():
-    """Return every subscription owned by the logged-in user.
-
-    Expected frontend use:
-    Dashboard tables, cards, or calendar views can call this to populate the
-    user's full subscription list.
-    """
     subscriptions = (
         Subscription.query.filter_by(
             user_id=g.current_user.user_id,
@@ -66,7 +125,6 @@ def list_subscriptions():
 @subscription_bp.get("/history")
 @login_required
 def list_subscription_history():
-    """Return deleted subscriptions so the history view survives refreshes."""
     subscriptions = (
         Subscription.query.filter_by(user_id=g.current_user.user_id)
         .filter(Subscription.deleted_at.isnot(None))
@@ -81,62 +139,107 @@ def list_subscription_history():
     )
 
 
-@subscription_bp.post("")
+@subscription_bp.get("/calendar")
 @login_required
-def create_subscription():
-    """Validate input, create a subscription row, and create its reminder row.
+def get_subscription_calendar():
+    start_date = parse_date(request.args.get("from"))
+    end_date = parse_date(request.args.get("to"))
+    error_payload, error_status = validate_calendar_window(start_date, end_date)
 
-    Expected frontend use:
-    The add-subscription modal should eventually POST its form data here.
-    """
-    data = request.get_json(silent=True) or {}
-    errors, cleaned_data = validate_subscription_payload(data, partial=False)
-
-    if errors:
-        return jsonify({"errors": errors}), 400
-
-    notification_data = cleaned_data.pop("notification_setting", {})
-
-    subscription = Subscription(
-        user_id=g.current_user.user_id,
-        **cleaned_data,
-    )
-    subscription.notification_setting = NotificationSetting(
-        notify_days_before=notification_data.get("notify_days_before", 3),
-        notification_enabled=notification_data.get("notification_enabled", True),
-    )
-
-    db.session.add(subscription)
-    db.session.commit()
-
-    return (
-        jsonify(
-            {
-                "message": "Subscription created successfully",
-                "subscription": subscription.to_dict(),
-            }
-        ),
-        201,
-    )
-
-
-@subscription_bp.get("/upcoming")
-@login_required
-def get_upcoming_subscriptions():
-    """Return only active subscriptions due in the next 7 days.
-
-    Expected frontend use:
-    This can drive an "upcoming renewals" card without the frontend having to
-    calculate due dates by itself.
-    """
-    today = date.today()
-    end_date = today + timedelta(days=7)
+    if error_payload:
+        return jsonify(error_payload), error_status
 
     subscriptions = Subscription.query.filter_by(
         user_id=g.current_user.user_id,
         is_active=True,
     ).all()
+    occurrences = []
 
+    for subscription in subscriptions:
+        for occurrence_date in get_occurrences_in_range(
+            subscription,
+            start_date,
+            end_date,
+        ):
+            occurrences.append(
+                {
+                    "subscription_id": subscription.subscription_id,
+                    "subscription_name": subscription.subscription_name,
+                    "amount": float(subscription.amount),
+                    "category_id": subscription.category_id,
+                    "category_name": (
+                        subscription.category.category_name
+                        if subscription.category
+                        else None
+                    ),
+                    "occurrence_date": occurrence_date.isoformat(),
+                    "recurrence_unit": subscription.recurrence_unit,
+                    "recurrence_interval": subscription.recurrence_interval,
+                }
+            )
+
+    occurrences.sort(
+        key=lambda occurrence: (
+            occurrence["occurrence_date"],
+            occurrence["subscription_id"],
+        )
+    )
+
+    return jsonify({"occurrences": occurrences})
+
+
+@subscription_bp.post("")
+@login_required
+def create_subscription():
+    data = request.get_json(silent=True) or {}
+    errors, cleaned_data = validate_subscription_payload(data, partial=False)
+
+    if errors:
+        return jsonify({"error": "Validation failed.", "errors": errors}), 400
+
+    notification_data = cleaned_data.pop("notification_setting", {})
+    subscription = Subscription(
+        user_id=g.current_user.user_id,
+        **cleaned_data,
+    )
+    if subscription.is_active is None:
+        subscription.is_active = True
+    subscription.sync_legacy_schedule_fields()
+
+    current_total, evaluation = build_cap_evaluation(g.current_user, subscription)
+
+    if not evaluation["allowed"]:
+        return jsonify(
+            {
+                "error": evaluation["cap_warning"]["message"],
+                "cap_warning": evaluation["cap_warning"],
+            }
+        ), 409
+
+    subscription.notification_setting = NotificationSetting(
+        notify_days_before=notification_data.get("notify_days_before", 3),
+        notification_enabled=notification_data.get("notification_enabled", True),
+    )
+    db.session.add(subscription)
+    db.session.commit()
+
+    response_body = {
+        "message": "Subscription created successfully.",
+        "subscription": subscription.to_dict(),
+    }
+
+    if evaluation["cap_warning"]:
+        response_body["cap_warning"] = evaluation["cap_warning"]
+
+    return jsonify(response_body), 201
+
+
+@subscription_bp.get("/upcoming")
+@login_required
+def get_upcoming_subscriptions():
+    today = date.today()
+    end_date = today + timedelta(days=7)
+    subscriptions = get_active_user_subscriptions(g.current_user.user_id)
     upcoming_items = []
 
     for subscription in subscriptions:
@@ -150,28 +253,20 @@ def get_upcoming_subscriptions():
 
     upcoming_items.sort(key=lambda item: item["next_due_date"])
 
-    return jsonify(
-        {
-            "upcoming_subscriptions": upcoming_items,
-        }
-    )
+    return jsonify({"upcoming_subscriptions": upcoming_items})
 
 
 @subscription_bp.get("/summary")
 @login_required
 def get_subscription_summary():
-    """Return summary numbers for high-level dashboard widgets.
-
-    This endpoint centralizes the billing-cycle math so the frontend does not
-    need to duplicate monthly/quarterly/yearly conversion rules.
-    """
-    active_subscriptions = Subscription.query.filter_by(
-        user_id=g.current_user.user_id,
-        is_active=True,
-    ).all()
-
+    active_subscriptions = get_active_user_subscriptions(g.current_user.user_id)
     total_monthly_cost = sum(
-        calculate_monthly_cost(subscription.amount, subscription.billing_cycle)
+        calculate_monthly_cost(
+            subscription.amount,
+            subscription.recurrence_unit,
+            subscription.recurrence_interval,
+            subscription.billing_cycle,
+        )
         for subscription in active_subscriptions
     )
 
@@ -188,7 +283,6 @@ def get_subscription_summary():
 @subscription_bp.get("/<int:subscription_id>")
 @login_required
 def get_subscription(subscription_id):
-    """Return a single subscription for details or edit screens."""
     subscription, error_response = get_user_subscription_or_404(
         subscription_id,
         g.current_user.user_id,
@@ -203,11 +297,6 @@ def get_subscription(subscription_id):
 @subscription_bp.put("/<int:subscription_id>")
 @login_required
 def update_subscription(subscription_id):
-    """Apply partial or full subscription updates for the current user.
-
-    Expected frontend use:
-    The update modal can send only changed fields or the full form payload.
-    """
     subscription, error_response = get_user_subscription_or_404(
         subscription_id,
         g.current_user.user_id,
@@ -220,12 +309,37 @@ def update_subscription(subscription_id):
     errors, cleaned_data = validate_subscription_payload(data, partial=True)
 
     if errors:
-        return jsonify({"errors": errors}), 400
+        return jsonify({"error": "Validation failed.", "errors": errors}), 400
 
     notification_data = cleaned_data.pop("notification_setting", None)
+    candidate_subscription = build_candidate_subscription(subscription, cleaned_data)
+    current_total, evaluation = build_cap_evaluation(
+        g.current_user,
+        candidate_subscription,
+        exclude_subscription_id=subscription.subscription_id,
+    )
+
+    if not evaluation["allowed"]:
+        return jsonify(
+            {
+                "error": evaluation["cap_warning"]["message"],
+                "cap_warning": evaluation["cap_warning"],
+            }
+        ), 409
 
     for field_name, value in cleaned_data.items():
         setattr(subscription, field_name, value)
+
+    if any(
+        field_name in cleaned_data
+        for field_name in (
+            "recurrence_unit",
+            "recurrence_interval",
+            "anchor_date",
+            "start_date",
+        )
+    ):
+        subscription.sync_legacy_schedule_fields()
 
     if notification_data is not None:
         if not subscription.notification_setting:
@@ -241,23 +355,28 @@ def update_subscription(subscription_id):
                 "notification_enabled"
             ]
 
-    if "is_active" in cleaned_data and cleaned_data["is_active"]:
-        subscription.deleted_at = None
+    if "is_active" in cleaned_data:
+        if cleaned_data["is_active"]:
+            subscription.deleted_at = None
+        elif not subscription.deleted_at:
+            subscription.deleted_at = datetime.utcnow()
 
     db.session.commit()
 
-    return jsonify(
-        {
-            "message": "Subscription updated successfully",
-            "subscription": subscription.to_dict(),
-        }
-    )
+    response_body = {
+        "message": "Subscription updated successfully.",
+        "subscription": subscription.to_dict(),
+    }
+
+    if evaluation["cap_warning"]:
+        response_body["cap_warning"] = evaluation["cap_warning"]
+
+    return jsonify(response_body)
 
 
 @subscription_bp.delete("/<int:subscription_id>")
 @login_required
 def delete_subscription(subscription_id):
-    """Move one subscription into history instead of hard-deleting it."""
     subscription, error_response = get_user_subscription_or_404(
         subscription_id,
         g.current_user.user_id,
@@ -272,7 +391,7 @@ def delete_subscription(subscription_id):
 
     return jsonify(
         {
-            "message": "Subscription moved to history successfully",
+            "message": "Subscription moved to history successfully.",
             "subscription": subscription.to_dict(),
         }
     )
@@ -281,7 +400,6 @@ def delete_subscription(subscription_id):
 @subscription_bp.delete("/history")
 @login_required
 def clear_subscription_history():
-    """Permanently remove deleted subscriptions from the history view."""
     deleted_subscriptions = (
         Subscription.query.filter_by(
             user_id=g.current_user.user_id,
@@ -296,4 +414,4 @@ def clear_subscription_history():
 
     db.session.commit()
 
-    return jsonify({"message": "Subscription history cleared successfully"})
+    return jsonify({"message": "Subscription history cleared successfully."})

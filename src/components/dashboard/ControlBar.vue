@@ -1,20 +1,35 @@
 <!-- Second row containing the logic for the CRUD buttons -->
 
 <script setup>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import AddSubscriptionModal from './AddSubscriptionModal.vue';
 import UpdateSubscriptionModal from './UpdateSubscriptionModal.vue';
 import DeleteSubscriptionModal from './DeleteSubscriptionModal.vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
+import { RECURRENCE_FILTER_OPTIONS } from '../../utils/subscriptionRecurrence';
 
 const { subscriptions, currentFilter } = useSubscriptions();
 const showAddModal = ref(false);
 const showUpdateModal = ref(false);
 const showDeleteModal = ref(false);
+const controlNotice = ref(null);
 
+const handleModalNotice = (notice) => {
+  controlNotice.value = notice;
+
+  if (notice) {
+    window.setTimeout(() => {
+      controlNotice.value = null;
+    }, 4000);
+  }
+};
 </script>
 
 <template>
+  <div v-if="controlNotice" class="control-notice" :class="controlNotice.tone">
+    {{ controlNotice.message }}
+  </div>
+
   <div class="control-bar">
     <div class="crud-group">
       <button class="control-btn add-btn" @click="showAddModal = true">
@@ -36,10 +51,13 @@ const showDeleteModal = ref(false);
     <div class="filter-group">
       <div class="select-wrapper">
         <select v-model="currentFilter" class="payment-dropdown" value="Payment Cycle">
-          <option value="all">All Cycles</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="annual">Annual</option>
+          <option
+            v-for="option in RECURRENCE_FILTER_OPTIONS"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
         </select>
         <span class="dropdown-arrow">▼</span>
       </div>
@@ -50,11 +68,13 @@ const showDeleteModal = ref(false);
   <AddSubscriptionModal
     v-if="showAddModal"
     @close="showAddModal = false"
+    @saved="handleModalNotice"
   />
 
   <UpdateSubscriptionModal
     v-if="showUpdateModal"
     @close="showUpdateModal = false"
+    @saved="handleModalNotice"
   />
 
   <DeleteSubscriptionModal
@@ -64,6 +84,27 @@ const showDeleteModal = ref(false);
 </template>
 
 <style scoped>
+.control-notice {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.control-notice.success {
+  background: color-mix(in srgb, var(--app-accent) 14%, var(--app-surface));
+  color: var(--app-accent);
+  border: 1px solid color-mix(in srgb, var(--app-accent) 30%, transparent);
+}
+
+.control-notice.warning {
+  background: color-mix(in srgb, #d48100 14%, var(--app-surface));
+  color: #c27500;
+  border: 1px solid color-mix(in srgb, #d48100 28%, transparent);
+}
+
 .control-bar {
   display: flex;
   justify-content: space-between;

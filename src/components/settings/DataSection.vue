@@ -1,19 +1,57 @@
 <script setup>
 import { ref } from 'vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
+import { useUserSettings } from '../../composables/useUserSettings';
 
 const { deletedSubscriptions, clearDeletedSubscriptions } = useSubscriptions();
-const HistoryError = ref('');
+const {
+  exportSubscriptionsCsv,
+  importSubscriptionsCsv,
+  importResult,
+  settingsSaving,
+} = useUserSettings();
+const historyError = ref('');
+const dataError = ref('');
+const localMessage = ref('');
+const selectedFile = ref(null);
 
 const clearHistory = async () => {
-  HistoryError.value = '';
+  historyError.value = '';
 
   if (confirm('Are you sure you want to permanently clear all history records?')) {
     try {
       await clearDeletedSubscriptions();
     } catch (error) {
-      HistoryError.value = error.message;
+      historyError.value = error.message;
     }
+  }
+};
+
+const handleExport = async () => {
+  dataError.value = '';
+  localMessage.value = '';
+
+  try {
+    await exportSubscriptionsCsv();
+    localMessage.value = 'CSV export downloaded.';
+  } catch (error) {
+    dataError.value = error.message;
+  }
+};
+
+const handleFileChange = (event) => {
+  selectedFile.value = event.target.files?.[0] ?? null;
+};
+
+const handleImport = async () => {
+  dataError.value = '';
+  localMessage.value = '';
+
+  try {
+    await importSubscriptionsCsv(selectedFile.value);
+    localMessage.value = 'Import completed.';
+  } catch (error) {
+    dataError.value = error.message;
   }
 };
 </script>
@@ -31,7 +69,9 @@ const clearHistory = async () => {
           <span>Export Data</span>
           <p>Download your subscriptions as a CSV file.</p>
         </div>
-        <button class="settings-btn-secondary">Export</button>
+        <button class="settings-btn-secondary" :disabled="settingsSaving" @click="handleExport">
+          {{ settingsSaving ? 'Working...' : 'Export' }}
+        </button>
       </div>
 
       <div class="data-panel">
@@ -40,15 +80,31 @@ const clearHistory = async () => {
           <span>Import Data</span>
           <p>Upload a CSV to bulk-add subscriptions.</p>
         </div>
-        <button class="settings-btn-secondary">Import</button>
+        <input class="file-input" type="file" accept=".csv,text/csv" @change="handleFileChange" />
+        <button class="settings-btn-secondary" :disabled="settingsSaving || !selectedFile" @click="handleImport">
+          {{ settingsSaving ? 'Working...' : 'Import' }}
+        </button>
       </div>
+    </div>
+
+    <p v-if="dataError" class="feedback error">{{ dataError }}</p>
+    <p v-else-if="localMessage" class="feedback success">{{ localMessage }}</p>
+
+    <div v-if="importResult" class="import-summary">
+      <span>Import Result</span>
+      <p>Created: {{ importResult.created_count }} | Skipped: {{ importResult.skipped_count }} | Warnings: {{ importResult.warning_count }}</p>
+      <ul class="import-list">
+        <li v-for="rowResult in importResult.row_results.slice(0, 10)" :key="`${rowResult.row}-${rowResult.status}`">
+          Row {{ rowResult.row }}: {{ rowResult.reason }}
+        </li>
+      </ul>
     </div>
 
     <div class="history-clear">
       <div class="clear-text">
         <span>Clean Up History</span>
         <p>This will permanently remove all items from your deleted history.</p>
-        <p v-if="HistoryError" class="error-text"> {{ HistoryError }}</p>
+        <p v-if="historyError" class="feedback error"> {{ historyError }}</p>
       </div>
 
 
@@ -131,6 +187,54 @@ const clearHistory = async () => {
   color: #f5f5f5;
   border-color: transparent;
   transform: translateY(-1px);
+}
+
+.settings-btn-secondary:disabled,
+.clear-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.file-input {
+  width: 100%;
+  font-size: 0.75rem;
+}
+
+.import-summary {
+  background: var(--app-surface-alt);
+  padding: 18px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+}
+
+.import-summary span {
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.import-summary p {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--app-text-muted);
+}
+
+.import-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--app-text);
+  font-size: 0.82rem;
+}
+
+.feedback {
+  font-size: 0.82rem;
+}
+
+.feedback.error {
+  color: var(--app-danger);
+}
+
+.feedback.success {
+  color: var(--app-accent);
 }
 
 .clear-btn {

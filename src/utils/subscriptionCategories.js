@@ -7,14 +7,10 @@ export const SUBSCRIPTION_CATEGORIES = [
 ];
 
 export function getDefaultCategoryId() {
-  return SUBSCRIPTION_CATEGORIES[0]?.id ?? 1;
+  return SUBSCRIPTION_CATEGORIES[0].id;
 }
 
 export function getCategoryNameById(categoryId) {
-  const numericId = Number(categoryId);
-  return (
-    SUBSCRIPTION_CATEGORIES.find((category) => category.id === numericId)?.name
-    || SUBSCRIPTION_CATEGORIES[0]?.name
-    || 'Entertainment'
-  );
+  return SUBSCRIPTION_CATEGORIES.find((category) => category.id === categoryId)?.name
+    ?? SUBSCRIPTION_CATEGORIES[0].name;
 }

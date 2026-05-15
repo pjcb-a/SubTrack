@@ -1,5 +1,53 @@
 <script setup>
+import { computed, ref, watch } from 'vue';
+import { useUserSettings } from '../../composables/useUserSettings';
 
+const { settings, capStatus, updateSettings, settingsSaving } = useUserSettings();
+const spendingCapMode = ref('none');
+const spendingCapAmount = ref('');
+const softCapOveragePercent = ref('');
+const localError = ref('');
+const localMessage = ref('');
+
+watch(
+  settings,
+  (nextSettings) => {
+    spendingCapMode.value = nextSettings?.spending_cap_mode ?? 'none';
+    spendingCapAmount.value = nextSettings?.spending_cap_amount ?? '';
+    softCapOveragePercent.value = nextSettings?.soft_cap_overage_percent ?? '';
+  },
+  { immediate: true },
+);
+
+const capSummary = computed(() => {
+  if (!capStatus.value?.enabled) {
+    return 'Cap protection is currently turned off.';
+  }
+
+  if (capStatus.value.mode === 'soft') {
+    return `Current monthly total: ₱${capStatus.value.current_monthly_total.toFixed(2)}. Soft limit: ₱${capStatus.value.soft_cap_limit.toFixed(2)}.`;
+  }
+
+  return `Current monthly total: ₱${capStatus.value.current_monthly_total.toFixed(2)}. Hard cap: ₱${capStatus.value.cap_amount.toFixed(2)}.`;
+});
+
+const savePreferences = async () => {
+  localError.value = '';
+  localMessage.value = '';
+
+  try {
+    await updateSettings({
+      spending_cap_mode: spendingCapMode.value,
+      spending_cap_amount: spendingCapAmount.value === '' ? 0 : Number(spendingCapAmount.value),
+      soft_cap_overage_percent: spendingCapMode.value === 'soft'
+        ? Number(softCapOveragePercent.value || 0)
+        : 0,
+    });
+    localMessage.value = 'Spending cap settings updated.';
+  } catch (error) {
+    localError.value = error.message;
+  }
+};
 </script>
 
 <template>
@@ -8,61 +56,62 @@
       <h3><i class="fa-solid fa-credit-card"></i> Subscription Constraint</h3>
     </div>
 
-    <div class="data-grid">
-      <div class="data-panel">
-        <i class="fa-solid fa-file-invoice"></i>
-        <div class="panel-text">
-          <span>Soft Cap</span>
-          <p>Freedom to exceed your subscription spending limits.</p>
-        </div>
-        <button class="settings-btn-secondary">Soft Cap</button>
+    <div class="preferences-form">
+      <div class="input-group">
+        <label>Cap Mode</label>
+        <select v-model="spendingCapMode" class="settings-input">
+          <option value="none">Off</option>
+          <option value="soft">Soft Cap</option>
+          <option value="hard">Hard Cap</option>
+        </select>
       </div>
 
-      <div class="data-panel">
-        <i class="fa-solid fa-file-invoice-dollar"></i>
-        <div class="panel-text">
-          <span>Hard Cap</span>
-          <p>Set a strict limit on your subscription spending.</p>
-        </div>
-        <button class="settings-btn-secondary">Hard Cap</button>
+      <div class="input-group">
+        <label>Monthly Cap Amount</label>
+        <input v-model="spendingCapAmount" class="settings-input" type="number" min="0" step="0.01" />
       </div>
+
+      <div v-if="spendingCapMode === 'soft'" class="input-group">
+        <label>Soft Cap Overage Percent</label>
+        <input v-model="softCapOveragePercent" class="settings-input" type="number" min="0" step="0.01" />
+      </div>
+
+      <p class="cap-summary">{{ capSummary }}</p>
+      <p v-if="capStatus?.warning_message" class="feedback warning">{{ capStatus.warning_message }}</p>
+      <p v-if="localError" class="feedback error">{{ localError }}</p>
+      <p v-else-if="localMessage" class="feedback success">{{ localMessage }}</p>
+
+      <button class="settings-btn-secondary" :disabled="settingsSaving" @click="savePreferences">
+        {{ settingsSaving ? 'Saving...' : 'Save Cap Settings' }}
+      </button>
     </div>
   </section>
 </template>
 
 <style scoped>
-.data-grid { 
-  display: grid; 
-  grid-template-columns: 1fr 1fr; 
-  gap: 15px; 
-  margin-bottom: 25px; }
-
-.data-panel {
-  background: var(--app-surface-alt); 
-  padding: 20px; 
-  border-radius: 16px;
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  text-align: center; 
-  gap: 12px;
+.preferences-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.data-panel i { 
-  font-size: 1.4rem; 
-  color: var(--app-accent); 
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.panel-text span { 
-  font-weight: 700; 
-  color: var(--app-text); 
-  font-size: 0.9rem; 
+.input-group label {
+  font-weight: 600;
+  color: var(--app-text);
 }
 
-.panel-text p { 
-  font-size: 0.75rem; 
-  color: var(--app-text-muted); 
-  margin-top: 4px; 
+.settings-input {
+  background: var(--app-surface-alt);
+  border: 1px solid var(--app-border);
+  padding: 12px;
+  border-radius: 12px;
+  color: var(--app-text);
 }
 
 .settings-btn-secondary {
@@ -83,9 +132,29 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 700px) {
-  .data-grid { 
-    grid-template-columns: 1fr; 
-  }
+.settings-btn-secondary:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.cap-summary {
+  font-size: 0.82rem;
+  color: var(--app-text-muted);
+}
+
+.feedback {
+  font-size: 0.82rem;
+}
+
+.feedback.error {
+  color: var(--app-danger);
+}
+
+.feedback.success {
+  color: var(--app-accent);
+}
+
+.feedback.warning {
+  color: var(--app-accent-strong);
 }
 </style>

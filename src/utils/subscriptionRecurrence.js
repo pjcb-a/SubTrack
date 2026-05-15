@@ -1,3 +1,17 @@
+const PRESET_UNIT_MAP = {
+  daily: 'day',
+  weekly: 'week',
+  monthly: 'month',
+  yearly: 'year',
+};
+
+const FILTER_KEY_BY_UNIT = {
+  day: 'daily',
+  week: 'weekly',
+  month: 'monthly',
+  year: 'yearly',
+};
+
 export const RECURRENCE_PRESET_OPTIONS = [
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
@@ -19,108 +33,69 @@ export const RECURRENCE_FILTER_OPTIONS = [
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
   { value: 'yearly', label: 'Yearly' },
-  { value: 'custom', label: 'Custom' },
 ];
 
-export function getRecurrenceFilterKey(recurrenceUnit = 'month', recurrenceInterval = 1) {
-  const normalizedUnit = String(recurrenceUnit || 'month').toLowerCase();
-  const normalizedInterval = Number(recurrenceInterval) || 1;
-
-  if (normalizedInterval > 1) {
-    return 'custom';
+function pluralize(unit, interval) {
+  if (interval === 1) {
+    return unit;
   }
 
-  if (normalizedUnit === 'day') {
-    return 'daily';
+  if (unit === 'day') return 'days';
+  if (unit === 'week') return 'weeks';
+  if (unit === 'month') return 'months';
+  return 'years';
+}
+
+export function getRecurrenceFilterKey(recurrenceUnit = 'month') {
+  return FILTER_KEY_BY_UNIT[recurrenceUnit] ?? 'monthly';
+}
+
+export function getRecurrenceLabel(recurrenceUnit = 'month', recurrenceInterval = 1) {
+  if (recurrenceInterval === 1) {
+    if (recurrenceUnit === 'day') return 'Daily';
+    if (recurrenceUnit === 'week') return 'Weekly';
+    if (recurrenceUnit === 'month') return 'Monthly';
+    return 'Yearly';
   }
 
-  if (normalizedUnit === 'week') {
-    return 'weekly';
-  }
+  return `Every ${recurrenceInterval} ${pluralize(recurrenceUnit, recurrenceInterval)}`;
+}
 
-  if (normalizedUnit === 'month') {
-    return 'monthly';
-  }
-
-  if (normalizedUnit === 'year') {
-    return 'yearly';
+export function getRecurrencePreset(recurrenceUnit = 'month', recurrenceInterval = 1) {
+  if (recurrenceInterval === 1) {
+    return FILTER_KEY_BY_UNIT[recurrenceUnit] ?? 'monthly';
   }
 
   return 'custom';
 }
 
-export function getRecurrenceLabel(recurrenceUnit = 'month', recurrenceInterval = 1) {
-  const normalizedUnit = String(recurrenceUnit || 'month').toLowerCase();
-  const normalizedInterval = Math.max(Number(recurrenceInterval) || 1, 1);
-
-  if (normalizedInterval === 1) {
-    if (normalizedUnit === 'day') {
-      return 'Daily';
-    }
-
-    if (normalizedUnit === 'week') {
-      return 'Weekly';
-    }
-
-    if (normalizedUnit === 'month') {
-      return 'Monthly';
-    }
-
-    if (normalizedUnit === 'year') {
-      return 'Yearly';
-    }
-  }
-
-  const unitLabel = normalizedUnit === 'day'
-    ? 'day'
-    : normalizedUnit === 'week'
-      ? 'week'
-      : normalizedUnit === 'month'
-        ? 'month'
-        : 'year';
-
-  const pluralSuffix = normalizedInterval === 1 ? '' : 's';
-  return `Every ${normalizedInterval} ${unitLabel}${pluralSuffix}`;
-}
-
-export function getRecurrencePreset(recurrenceUnit = 'month', recurrenceInterval = 1) {
-  return getRecurrenceFilterKey(recurrenceUnit, recurrenceInterval);
-}
-
 export function buildRecurrenceFromForm({
-  preset = 'monthly',
-  customInterval = 1,
-  customUnit = 'month',
-} = {}) {
-  if (preset === 'daily') {
-    return { recurrenceUnit: 'day', recurrenceInterval: 1 };
-  }
-
-  if (preset === 'weekly') {
-    return { recurrenceUnit: 'week', recurrenceInterval: 1 };
-  }
-
-  if (preset === 'monthly') {
-    return { recurrenceUnit: 'month', recurrenceInterval: 1 };
-  }
-
-  if (preset === 'yearly') {
-    return { recurrenceUnit: 'year', recurrenceInterval: 1 };
+  recurrencePreset,
+  customRecurrenceUnit,
+  customRecurrenceInterval,
+}) {
+  if (recurrencePreset === 'custom') {
+    return {
+      recurrenceUnit: customRecurrenceUnit || 'day',
+      recurrenceInterval: Math.max(Number(customRecurrenceInterval) || 1, 1),
+    };
   }
 
   return {
-    recurrenceUnit: customUnit || 'month',
-    recurrenceInterval: Math.max(Number(customInterval) || 1, 1),
+    recurrenceUnit: PRESET_UNIT_MAP[recurrencePreset] ?? 'month',
+    recurrenceInterval: 1,
   };
 }
 
-export function buildRecurrenceForm(subscription = {}) {
-  const recurrenceUnit = subscription.recurrenceUnit || 'month';
-  const recurrenceInterval = Math.max(Number(subscription.recurrenceInterval) || 1, 1);
+export function buildRecurrenceForm(subscription) {
+  const recurrencePreset = getRecurrencePreset(
+    subscription.recurrenceUnit,
+    subscription.recurrenceInterval,
+  );
 
   return {
-    preset: getRecurrencePreset(recurrenceUnit, recurrenceInterval),
-    customInterval: recurrenceInterval,
-    customUnit: recurrenceUnit,
+    recurrencePreset,
+    customRecurrenceUnit: subscription.recurrenceUnit ?? 'day',
+    customRecurrenceInterval: subscription.recurrenceInterval ?? 1,
   };
 }

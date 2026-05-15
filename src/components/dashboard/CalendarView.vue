@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
 import {
   addDays,
@@ -13,43 +13,70 @@ import {
 } from '../../utils/subscriptionDates';
 
 const weekDays = ref(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
-const { subscriptions, currentFilter } = useSubscriptions();
+const {
+  calendarOccurrences,
+  calendarLoading,
+  calendarError,
+  currentFilter,
+  fetchCalendarOccurrences,
+} = useSubscriptions();
 const today = new Date();
 const visibleMonth = ref(startOfMonth(today));
 const selectedDate = ref(formatDateKey(today));
 
 const cycleColors = {
+  daily: '#1b7f3a',
   weekly: '#00a859',
   monthly: '#004d26',
-  annual: '#bcbcbc',
+  yearly: '#7d7d7d',
 };
 
-const filteredSubscriptions = computed(() => {
+const monthStart = computed(() => startOfMonth(visibleMonth.value));
+const monthEnd = computed(() => {
+  const date = new Date(visibleMonth.value);
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+});
+
+const loadCalendar = async () => {
+  await fetchCalendarOccurrences({
+    from: formatDateKey(monthStart.value),
+    to: formatDateKey(monthEnd.value),
+  });
+};
+
+watch(
+  visibleMonth,
+  () => {
+    loadCalendar().catch(() => {});
+  },
+  { immediate: true },
+);
+
+const filteredOccurrences = computed(() => {
   if (currentFilter.value === 'all') {
-    return subscriptions.value;
+    return calendarOccurrences.value;
   }
 
-  return subscriptions.value.filter((subscription) => subscription.cycle === currentFilter.value);
+  return calendarOccurrences.value.filter((occurrence) => occurrence.cycle === currentFilter.value);
 });
 
 const paymentMap = computed(() => {
   const map = new Map();
 
-  filteredSubscriptions.value.forEach((subscription) => {
-    if (!subscription.dueDate) {
+  filteredOccurrences.value.forEach((occurrence) => {
+    if (!occurrence.dueDate) {
       return;
     }
 
-    const list = map.get(subscription.dueDate) ?? [];
-    list.push(subscription);
-    map.set(subscription.dueDate, list);
+    const list = map.get(occurrence.dueDate) ?? [];
+    list.push(occurrence);
+    map.set(occurrence.dueDate, list);
   });
 
   return map;
 });
 
 const monthLabel = computed(() => formatMonthTitle(visibleMonth.value));
-const monthStart = computed(() => startOfMonth(visibleMonth.value));
 const calendarDates = computed(() => {
   const firstDayOfMonth = monthStart.value;
   const mondayIndex = (firstDayOfMonth.getDay() + 6) % 7;
@@ -124,6 +151,8 @@ const formatPaymentDate = (value) => formatLongDate(parseDateString(value));
       </div>
     </div>
 
+    <p v-if="calendarError" class="calendar-error">{{ calendarError }}</p>
+
     <div class="calendar-grid">
       <div v-for="day in weekDays" :key="day" class="weekday-header">{{ day }}</div>
 
@@ -161,11 +190,15 @@ const formatPaymentDate = (value) => formatLongDate(parseDateString(value));
         </div>
       </div>
 
-      <div v-if="selectedDayPayments.length" class="agenda-list">
+      <div v-if="calendarLoading" class="agenda-empty">Loading calendar occurrences...</div>
+
+      <div v-else-if="selectedDayPayments.length" class="agenda-list">
         <div v-for="payment in selectedDayPayments" :key="payment.id" class="agenda-item">
           <div>
             <p class="agenda-name">{{ payment.name }}</p>
-            <p class="agenda-date">{{ formatPaymentDate(payment.dueDate) }}</p>
+            <p class="agenda-date">
+              {{ payment.scheduleLabel }} • {{ formatPaymentDate(payment.dueDate) }}
+            </p>
           </div>
           <p class="agenda-amount">{{ formatPaymentAmount(payment.amount) }}</p>
         </div>
@@ -214,6 +247,12 @@ const formatPaymentDate = (value) => formatLongDate(parseDateString(value));
   font-size: 0.85rem;
   color: var(--app-text-muted);
   margin-top: 4px;
+}
+
+.calendar-error {
+  margin-bottom: 16px;
+  color: var(--app-danger);
+  font-size: 0.85rem;
 }
 
 .calendar-nav {

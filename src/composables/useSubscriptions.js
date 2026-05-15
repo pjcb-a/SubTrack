@@ -9,6 +9,27 @@ import {
   getRecurrenceLabel,
 } from '../utils/subscriptionRecurrence';
 
+const MOCK_SUBSCRIPTIONS = [
+  {
+    name: 'Netflix',
+    categoryId: 1,
+    amount: 549,
+    recurrenceUnit: 'month',
+    recurrenceInterval: 1,
+    anchorDate: '2026-04-15',
+    notifyDays: 3,
+  },
+  {
+    name: 'Spotify',
+    categoryId: 3,
+    amount: 149,
+    recurrenceUnit: 'month',
+    recurrenceInterval: 1,
+    anchorDate: '2026-04-05',
+    notifyDays: 1,
+  },
+];
+
 const subscriptions = ref([]);
 const deletedSubscriptions = ref([]);
 const calendarOccurrences = ref([]);
@@ -85,6 +106,15 @@ function buildApiPayload(subscription) {
   };
 }
 
+async function seedMockSubscriptionsForUser() {
+  for (const mockSubscription of MOCK_SUBSCRIPTIONS) {
+    await apiRequest('/api/subscriptions', {
+      method: 'POST',
+      body: buildApiPayload(mockSubscription),
+    });
+  }
+}
+
 async function refreshCurrentCalendarRange() {
   if (!lastCalendarRange.value) {
     return;
@@ -96,7 +126,7 @@ async function refreshCurrentCalendarRange() {
   });
 }
 
-async function fetchSubscriptions({ force = false } = {}) {
+async function fetchSubscriptions({ seedIfEmpty = true, force = false } = {}) {
   if (fetchPromise && !force) {
     return fetchPromise;
   }
@@ -110,8 +140,18 @@ async function fetchSubscriptions({ force = false } = {}) {
         apiRequest('/api/subscriptions'),
         apiRequest('/api/subscriptions/history'),
       ]);
-      const nextSubscriptions = response.subscriptions?.map(formatUiSubscription) ?? [];
-      const nextDeletedSubscriptions = historyResponse.subscriptions?.map(formatUiSubscription) ?? [];
+      let nextSubscriptions = response.subscriptions?.map(formatUiSubscription) ?? [];
+      let nextDeletedSubscriptions = historyResponse.subscriptions?.map(formatUiSubscription) ?? [];
+
+      if (seedIfEmpty && nextSubscriptions.length === 0 && nextDeletedSubscriptions.length === 0) {
+        await seedMockSubscriptionsForUser();
+        [response, historyResponse] = await Promise.all([
+          apiRequest('/api/subscriptions'),
+          apiRequest('/api/subscriptions/history'),
+        ]);
+        nextSubscriptions = response.subscriptions?.map(formatUiSubscription) ?? [];
+        nextDeletedSubscriptions = historyResponse.subscriptions?.map(formatUiSubscription) ?? [];
+      }
 
       subscriptions.value = nextSubscriptions;
       deletedSubscriptions.value = nextDeletedSubscriptions;

@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { apiRequest, buildBackendUnavailableError, getApiBaseUrl } from '../lib/api';
+import { apiRequest, getApiBaseUrl } from '../lib/api';
 import { useAuth } from './useAuth';
 import { useSubscriptions } from './useSubscriptions';
 
@@ -108,25 +108,12 @@ async function exportSubscriptionsCsv() {
   settingsError.value = '';
 
   try {
-    let response;
-
-    try {
-      response = await fetch(`${getApiBaseUrl()}/api/user/export`, {
-        credentials: 'include',
-      });
-    } catch {
-      throw buildBackendUnavailableError();
-    }
+    const response = await fetch(`${getApiBaseUrl()}/api/user/export`, {
+      credentials: 'include',
+    });
 
     if (!response.ok) {
-      let responseData = {};
-
-      try {
-        responseData = await response.json();
-      } catch {
-        responseData = {};
-      }
-
+      const responseData = await response.json();
       throw new Error(responseData.error || 'Export failed.');
     }
 

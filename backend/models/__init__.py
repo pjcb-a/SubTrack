@@ -12,6 +12,14 @@ from models.category import Category
 from models.notification_setting import NotificationSetting
 from models.subscription import Subscription
 from models.user import User
+from models.user_setting import UserSetting
 
 
-__all__ = ["db", "User", "Category", "Subscription", "NotificationSetting"]
+__all__ = [
+    "db",
+    "User",
+    "UserSetting",
+    "Category",
+    "Subscription",
+    "NotificationSetting",
+]
