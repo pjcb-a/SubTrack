@@ -76,10 +76,13 @@ def create_app():
     # Initializes the database on startup so the backend can boot on a clean
     # machine without a manual migration step. The seeded categories are later
     # referenced by subscription creation and editing flows.
-    with app.app_context():
-        db.create_all()
-        ensure_subscription_deleted_at_column()
-        seed_default_categories()
+    # Only run DB init locally. 
+    # For Production (Vercel), handle migrations/seeding manually or via a script.
+    if os.getenv("FLASK_ENV") == "development":
+        with app.app_context():
+            db.create_all()
+            ensure_subscription_deleted_at_column()
+            seed_default_categories()
 
     return app
 

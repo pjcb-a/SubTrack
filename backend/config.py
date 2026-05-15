@@ -64,16 +64,21 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
     if not SECRET_KEY:
         SECRET_KEY = "subtrack-dev-secret"  # Fallback for local dev only
+    
+    _database_url = os.getenv("DATABASE_URL")
+    
+    # Check if we are on Vercel/Production and fix the prefix
+    if _database_url and _database_url.startswith("postgres://"):
+        _database_url = _database_url.replace("postgres://", "postgresql://", 1)
+    
+    SQLALCHEMY_DATABASE_URI = _database_url or f"sqlite:///{os.path.join(BASE_DIR, 'subtrack.db')}"
 
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        f"sqlite:///{os.path.join(BASE_DIR, 'subtrack.db')}",
-    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_SORT_KEYS = False
+    # Logic for cross-domain cookies (Vercel)
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SAMESITE = "None" if os.getenv("FLASK_ENV") == "production" else "Lax"
+    SESSION_COOKIE_SECURE = True if os.getenv("FLASK_ENV") == "production" else False
     # Keep local HTTP development usable by default. Production deployments
     # should opt in explicitly through `SESSION_COOKIE_SECURE=true`.
-    SESSION_COOKIE_SECURE = get_bool_env("SESSION_COOKIE_SECURE", default=False)
     CORS_ORIGINS = get_cors_origins()
