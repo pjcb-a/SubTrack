@@ -10,9 +10,12 @@ import {
 
 const { subscriptions, currentFilter } = useSubscriptions();
 const cycleLabels = {
+  daily: 'Daily',
   weekly: 'Weekly',
   monthly: 'Monthly',
+  yearly: 'Yearly',
   annual: 'Annual',
+  custom: 'Custom',
 };
 
 const filteredSubs = computed(() => {
@@ -30,13 +33,17 @@ const filteredSubs = computed(() => {
 });
 
 const totalActive = computed(() => subscriptions.value.length);
+const dailyCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'daily').length);
 const weeklyCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'weekly').length);
 const monthlyCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'monthly').length);
-const annualCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'annual').length);
+const yearlyCount = computed(() => subscriptions.value.filter((subscription) => ['annual', 'yearly'].includes(subscription.cycle)).length);
+const customCount = computed(() => subscriptions.value.filter((subscription) => subscription.cycle === 'custom').length);
 
+const dailyPercent = computed(() => totalActive.value === 0 ? 0 : (dailyCount.value / totalActive.value) * 100);
 const weeklyPercent = computed(() => totalActive.value === 0 ? 0 : (weeklyCount.value / totalActive.value) * 100);
 const monthlyPercent = computed(() => totalActive.value === 0 ? 0 : (monthlyCount.value / totalActive.value) * 100);
-const annualPercent = computed(() => totalActive.value === 0 ? 0 : (annualCount.value / totalActive.value) * 100);
+const yearlyPercent = computed(() => totalActive.value === 0 ? 0 : (yearlyCount.value / totalActive.value) * 100);
+const customPercent = computed(() => totalActive.value === 0 ? 0 : (customCount.value / totalActive.value) * 100);
 const dueSoonCount = computed(() => filteredSubs.value.filter((sub) => {
   const diff = differenceInDays(sub.dueDate);
   return diff >= 0 && diff <= 7;
@@ -55,6 +62,10 @@ const totalAnnualSpend = computed(() => {
     const amount = Number(sub.amount) || 0;
 
     // Calculate the impact for the selected category
+    if (sub.cycle === 'daily') {
+      return acc + (amount * 365);
+    }
+
     if (sub.cycle === 'weekly') {
       return acc + (amount * 7);
     }
@@ -63,7 +74,7 @@ const totalAnnualSpend = computed(() => {
       return acc + (amount * 12);
     }
 
-    if(sub.cycle === 'annual') {
+    if(sub.cycle === 'annual' || sub.cycle === 'yearly') {
       return acc + amount;
     }
 
@@ -131,10 +142,15 @@ const getDueLabel = (dueDate) => {
       <div class="progress-container">
         <div class="progress-bar weekly" :style="{ width: weeklyPercent + '%' }"></div>
         <div class="progress-bar monthly" :style="{ width: monthlyPercent + '%' }"></div>
-        <div class="progress-bar annual" :style="{ width: annualPercent + '%' }"></div>
+        <div class="progress-bar annual" :style="{ width: yearlyPercent + '%' }"></div>
       </div>
 
       <div class="legend-grid">
+        <div class="legend-item">
+          <span class="dot weekly-dot"></span>
+          <span class="legend-text">Daily ({{ dailyCount }})</span>
+          <span class="legend-value">{{ Math.round(dailyPercent) }}%</span>
+        </div>
         <div class="legend-item">
           <span class="dot weekly-dot"></span>
           <span class="legend-text">Weekly ({{ weeklyCount }})</span>
@@ -147,8 +163,13 @@ const getDueLabel = (dueDate) => {
         </div>
         <div class="legend-item">
           <span class="dot annual-dot"></span>
-          <span class="legend-text">Annual ({{ annualCount }})</span>
-          <span class="legend-value">{{ Math.round(annualPercent) }}%</span>
+          <span class="legend-text">Yearly ({{ yearlyCount }})</span>
+          <span class="legend-value">{{ Math.round(yearlyPercent) }}%</span>
+        </div>
+        <div class="legend-item">
+          <span class="dot annual-dot"></span>
+          <span class="legend-text">Custom ({{ customCount }})</span>
+          <span class="legend-value">{{ Math.round(customPercent) }}%</span>
         </div>
       </div>
     </div>

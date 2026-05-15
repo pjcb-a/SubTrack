@@ -7,6 +7,7 @@ requests.
 """
 
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 
 from flask import Blueprint, jsonify, request, g
 
@@ -14,7 +15,14 @@ from models import db
 from models.notification_setting import NotificationSetting
 from models.subscription import Subscription
 from utils.auth import login_required
-from utils.subscription_utils import calculate_monthly_cost, get_next_due_date
+from utils.subscription_utils import (
+    calculate_monthly_cost,
+    calculate_monthly_cost_from_recurrence,
+    get_next_due_date,
+    iter_occurrences_in_range,
+    parse_date,
+)
+from utils.user_settings import evaluate_cap_change, get_current_monthly_total
 from utils.validators import validate_subscription_payload
 
 
@@ -97,6 +105,23 @@ def create_subscription():
 
     notification_data = cleaned_data.pop("notification_setting", {})
 
+    projected_total = get_current_monthly_total(g.current_user) + Decimal(
+        str(calculate_monthly_cost_from_recurrence(
+            cleaned_data["amount"],
+            cleaned_data.get("recurrence_unit"),
+            cleaned_data.get("recurrence_interval"),
+        ))
+    )
+    cap_result = evaluate_cap_change(g.current_user, projected_total)
+
+    if cap_result and not cap_result["allowed"]:
+        return jsonify(
+            {
+                "error": cap_result["message"],
+                "cap_status": cap_result["cap_status"],
+            }
+        ), cap_result["status"]
+
     subscription = Subscription(
         user_id=g.current_user.user_id,
         **cleaned_data,
@@ -109,13 +134,15 @@ def create_subscription():
     db.session.add(subscription)
     db.session.commit()
 
+    response_payload = {
+        "message": "Subscription created successfully",
+        "subscription": subscription.to_dict(),
+    }
+    if cap_result and cap_result.get("warning"):
+        response_payload["cap_warning"] = cap_result["cap_status"]
+
     return (
-        jsonify(
-            {
-                "message": "Subscription created successfully",
-                "subscription": subscription.to_dict(),
-            }
-        ),
+        jsonify(response_payload),
         201,
     )
 
@@ -171,7 +198,11 @@ def get_subscription_summary():
     ).all()
 
     total_monthly_cost = sum(
-        calculate_monthly_cost(subscription.amount, subscription.billing_cycle)
+        calculate_monthly_cost_from_recurrence(
+            subscription.amount,
+            subscription.recurrence_unit,
+            subscription.recurrence_interval,
+        )
         for subscription in active_subscriptions
     )
 
@@ -183,6 +214,50 @@ def get_subscription_summary():
             }
         }
     )
+
+
+@subscription_bp.get("/calendar")
+@login_required
+def get_subscription_calendar():
+    from_value = request.args.get("from", "")
+    to_value = request.args.get("to", "")
+    range_start = parse_date(from_value)
+    range_end = parse_date(to_value)
+
+    if not range_start or not range_end:
+        return jsonify({"error": "from and to must use YYYY-MM-DD format."}), 400
+
+    if range_start > range_end:
+        return jsonify({"error": "from cannot be later than to."}), 400
+
+    if (range_end - range_start).days > 366:
+        return jsonify({"error": "Calendar range cannot exceed 366 days."}), 400
+
+    subscriptions = Subscription.query.filter_by(
+        user_id=g.current_user.user_id,
+        is_active=True,
+    ).all()
+
+    occurrences = []
+    for subscription in subscriptions:
+        for occurrence_date in iter_occurrences_in_range(subscription, range_start, range_end):
+            subscription_data = subscription.to_dict()
+            occurrences.append(
+                {
+                    "subscription_id": subscription.subscription_id,
+                    "subscription_name": subscription.subscription_name,
+                    "amount": float(subscription.amount),
+                    "category_id": subscription.category_id,
+                    "category_name": subscription_data["category_name"],
+                    "occurrence_date": occurrence_date.isoformat(),
+                    "recurrence_unit": subscription_data["recurrence_unit"],
+                    "recurrence_interval": subscription_data["recurrence_interval"],
+                    "is_active": subscription.is_active,
+                }
+            )
+
+    occurrences.sort(key=lambda item: (item["occurrence_date"], item["subscription_name"]))
+    return jsonify({"occurrences": occurrences})
 
 
 @subscription_bp.get("/<int:subscription_id>")
@@ -224,6 +299,36 @@ def update_subscription(subscription_id):
 
     notification_data = cleaned_data.pop("notification_setting", None)
 
+    next_amount = cleaned_data.get("amount", subscription.amount)
+    next_recurrence_unit = cleaned_data.get(
+        "recurrence_unit",
+        subscription.recurrence_unit,
+    )
+    next_recurrence_interval = cleaned_data.get(
+        "recurrence_interval",
+        subscription.recurrence_interval,
+    )
+    current_total = get_current_monthly_total(
+        g.current_user,
+        exclude_subscription_id=subscription.subscription_id,
+    )
+    projected_total = current_total + Decimal(
+        str(calculate_monthly_cost_from_recurrence(
+            next_amount,
+            next_recurrence_unit,
+            next_recurrence_interval,
+        ))
+    )
+    cap_result = evaluate_cap_change(g.current_user, projected_total)
+
+    if cap_result and not cap_result["allowed"]:
+        return jsonify(
+            {
+                "error": cap_result["message"],
+                "cap_status": cap_result["cap_status"],
+            }
+        ), cap_result["status"]
+
     for field_name, value in cleaned_data.items():
         setattr(subscription, field_name, value)
 
@@ -246,12 +351,14 @@ def update_subscription(subscription_id):
 
     db.session.commit()
 
-    return jsonify(
-        {
-            "message": "Subscription updated successfully",
-            "subscription": subscription.to_dict(),
-        }
-    )
+    response_payload = {
+        "message": "Subscription updated successfully",
+        "subscription": subscription.to_dict(),
+    }
+    if cap_result and cap_result.get("warning"):
+        response_payload["cap_warning"] = cap_result["cap_status"]
+
+    return jsonify(response_payload)
 
 
 @subscription_bp.delete("/<int:subscription_id>")

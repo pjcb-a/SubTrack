@@ -37,9 +37,12 @@ const showDeleteModal = ref(false);
       <div class="select-wrapper">
         <select v-model="currentFilter" class="payment-dropdown" value="Payment Cycle">
           <option value="all">All Cycles</option>
+          <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
           <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
           <option value="annual">Annual</option>
+          <option value="custom">Custom</option>
         </select>
         <span class="dropdown-arrow">▼</span>
       </div>

@@ -1,5 +1,15 @@
 <script setup>
+import { computed } from 'vue';
+import { useUserSettings } from '../../composables/useUserSettings';
 
+const { settings, settingsSaving, updateSettings } = useUserSettings();
+
+const renewalEnabled = computed(() => settings.value?.renewal_reminders_enabled ?? true);
+const reportsEnabled = computed(() => settings.value?.monthly_reports_enabled ?? false);
+
+const toggleSetting = async (field, event) => {
+  await updateSettings({ [field]: event.target.checked });
+};
 </script>
 
 <template>
@@ -12,10 +22,15 @@
       <div class="toggle-item">
         <div class="toggle-info">
           <span>Renewal Reminders</span>
-          <p>Get notified 3 days before a subscription is due.</p>
+          <p>Get notified before a subscription is due.</p>
         </div>
         <label class="switch">
-          <input type="checkbox">
+          <input
+            :checked="renewalEnabled"
+            :disabled="settingsSaving"
+            type="checkbox"
+            @change="toggleSetting('renewal_reminders_enabled', $event)"
+          >
           <span class="slider"></span>
         </label>
       </div>
@@ -23,10 +38,15 @@
       <div class="toggle-item">
         <div class="toggle-info">
           <span>Monthly Reports</span>
-          <p>Receive a summary of your spending every month.</p>
+          <p>Store your preference for monthly summary reports.</p>
         </div>
         <label class="switch">
-          <input type="checkbox">
+          <input
+            :checked="reportsEnabled"
+            :disabled="settingsSaving"
+            type="checkbox"
+            @change="toggleSetting('monthly_reports_enabled', $event)"
+          >
           <span class="slider"></span>
         </label>
       </div>
@@ -36,65 +56,65 @@
 
 <style scoped>
 .toggle-item {
-  display: flex; 
-  justify-content: space-between; 
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 15px 0;
 }
 
-.toggle-item:not(:last-child) { 
-    border-bottom: 1px solid var(--app-border); 
+.toggle-item:not(:last-child) {
+  border-bottom: 1px solid var(--app-border);
 }
 
-.toggle-info span { 
-    font-weight: 600; 
-    color: var(--app-text); 
+.toggle-info span {
+  font-weight: 600;
+  color: var(--app-text);
 }
 
-.toggle-info p { 
-    font-size: 0.8rem; 
-    color: var(--app-text-muted); 
+.toggle-info p {
+  font-size: 0.8rem;
+  color: var(--app-text-muted);
 }
 
-.switch { 
-    position: relative; 
-    display: inline-block; 
-    width: 44px; 
-    height: 24px; 
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
 }
 
-.switch input { 
-    opacity: 0; 
-    width: 0; 
-    height: 0; 
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 .slider {
-  position: absolute; 
-  cursor: pointer; 
+  position: absolute;
+  cursor: pointer;
   inset: 0;
-  background-color: var(--app-surface-soft); 
-  border-radius: 24px; 
+  background-color: var(--app-surface-soft);
+  border-radius: 24px;
   transition: .3s;
 }
 
 .slider:before {
-  position: absolute; 
-  content: ""; 
-  height: 18px; 
+  position: absolute;
+  content: "";
+  height: 18px;
   width: 18px;
-  left: 3px; 
-  bottom: 3px; 
-  background-color: white; 
-  border-radius: 50%; 
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
   transition: .3s;
 }
 
-input:checked + .slider { 
-    background-color: var(--app-accent); 
+input:checked + .slider {
+  background-color: var(--app-accent);
 }
 
-input:checked + .slider:before { 
-    transform: translateX(20px); 
+input:checked + .slider:before {
+  transform: translateX(20px);
 }
 </style>

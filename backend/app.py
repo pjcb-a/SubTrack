@@ -16,7 +16,10 @@ from models import db
 from routes.auth_routes import auth_bp
 from routes.subscription_routes import subscription_bp
 from routes.user_routes import user_bp
-from utils.schema_sync import ensure_subscription_deleted_at_column
+from utils.schema_sync import (
+    ensure_subscription_deleted_at_column,
+    ensure_subscription_recurrence_columns,
+)
 from utils.seed_data import seed_default_categories
 
 
@@ -79,6 +82,7 @@ def create_app():
     with app.app_context():
         db.create_all()
         ensure_subscription_deleted_at_column()
+        ensure_subscription_recurrence_columns()
         seed_default_categories()
 
     return app

@@ -10,7 +10,11 @@ from decimal import Decimal, InvalidOperation
 
 from models import db
 from models.category import Category
-from utils.subscription_utils import ALLOWED_BILLING_CYCLES, parse_date
+from utils.subscription_utils import (
+    ALLOWED_BILLING_CYCLES,
+    ALLOWED_RECURRENCE_UNITS,
+    parse_date,
+)
 
 
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -58,15 +62,16 @@ def validate_subscription_payload(data, partial=False):
         "category_id",
         "subscription_name",
         "amount",
-        "billing_cycle",
         "start_date",
-        "due_day",
     ]
 
     if not partial:
         for field_name in required_fields:
             if data.get(field_name) in (None, ""):
                 errors[field_name] = "This field is required."
+
+    recurrence_unit = None
+    recurrence_interval = None
 
     if "category_id" in data:
         try:
@@ -105,10 +110,29 @@ def validate_subscription_payload(data, partial=False):
 
         if billing_cycle not in ALLOWED_BILLING_CYCLES:
             errors["billing_cycle"] = (
-                "Billing cycle must be weekly, monthly, or annual."
+                "Billing cycle must be daily, weekly, monthly, annual, or custom."
             )
         else:
             cleaned_data["billing_cycle"] = billing_cycle
+
+    if "recurrence_unit" in data:
+        recurrence_unit = str(data.get("recurrence_unit", "")).strip().lower()
+
+        if recurrence_unit not in ALLOWED_RECURRENCE_UNITS:
+            errors["recurrence_unit"] = "Recurrence unit must be day, week, month, or year."
+        else:
+            cleaned_data["recurrence_unit"] = recurrence_unit
+
+    if "recurrence_interval" in data:
+        try:
+            recurrence_interval = int(data["recurrence_interval"])
+        except (TypeError, ValueError):
+            errors["recurrence_interval"] = "Recurrence interval must be a number."
+        else:
+            if recurrence_interval < 1:
+                errors["recurrence_interval"] = "Recurrence interval must be at least 1."
+            else:
+                cleaned_data["recurrence_interval"] = recurrence_interval
 
     if "start_date" in data:
         start_date = parse_date(data.get("start_date"))
@@ -128,6 +152,26 @@ def validate_subscription_payload(data, partial=False):
                 errors["due_day"] = "Due day must be between 1 and 31."
             else:
                 cleaned_data["due_day"] = due_day
+    elif "start_date" in cleaned_data:
+        cleaned_data["due_day"] = cleaned_data["start_date"].day
+
+    if "recurrence_end_mode" in data:
+        recurrence_end_mode = str(data.get("recurrence_end_mode", "")).strip().lower()
+        if recurrence_end_mode not in {"forever", "until"}:
+            errors["recurrence_end_mode"] = "Recurrence end mode must be forever or until."
+        else:
+            cleaned_data["recurrence_end_mode"] = recurrence_end_mode
+
+    if "recurrence_end_date" in data:
+        raw_end_date = data.get("recurrence_end_date")
+        if raw_end_date in (None, ""):
+            cleaned_data["recurrence_end_date"] = None
+        else:
+            recurrence_end_date = parse_date(raw_end_date)
+            if not recurrence_end_date:
+                errors["recurrence_end_date"] = "Recurrence end date must use YYYY-MM-DD format."
+            else:
+                cleaned_data["recurrence_end_date"] = recurrence_end_date
 
     if "is_active" in data:
         is_active, error_message = parse_boolean(data["is_active"])
@@ -177,5 +221,36 @@ def validate_subscription_payload(data, partial=False):
                     )
 
             cleaned_data["notification_setting"] = cleaned_notification_data
+
+    if not partial:
+        billing_cycle = cleaned_data.get("billing_cycle")
+        if billing_cycle in (None, ""):
+            errors["billing_cycle"] = "This field is required."
+
+        if billing_cycle == "custom":
+            if "recurrence_unit" not in cleaned_data:
+                errors["recurrence_unit"] = "Recurrence unit is required for custom schedules."
+            if "recurrence_interval" not in cleaned_data:
+                errors["recurrence_interval"] = "Recurrence interval is required for custom schedules."
+
+    billing_cycle = cleaned_data.get("billing_cycle", data.get("billing_cycle"))
+    if billing_cycle and billing_cycle != "custom":
+        preset_unit_map = {
+            "daily": "day",
+            "weekly": "week",
+            "monthly": "month",
+            "annual": "year",
+        }
+        cleaned_data["recurrence_unit"] = preset_unit_map.get(str(billing_cycle).lower(), "month")
+        cleaned_data["recurrence_interval"] = 1
+
+    if cleaned_data.get("recurrence_end_mode") == "until":
+        if cleaned_data.get("recurrence_end_date") is None:
+            errors["recurrence_end_date"] = "Recurrence end date is required when using an until date."
+        elif cleaned_data.get("start_date") and cleaned_data["recurrence_end_date"] < cleaned_data["start_date"]:
+            errors["recurrence_end_date"] = "Recurrence end date cannot be earlier than start date."
+
+    if cleaned_data.get("recurrence_end_mode") != "until" and "recurrence_end_mode" in cleaned_data:
+        cleaned_data["recurrence_end_date"] = None
 
     return errors, cleaned_data

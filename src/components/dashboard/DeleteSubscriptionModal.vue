@@ -5,7 +5,7 @@ import { useSubscriptions } from '../../composables/useSubscriptions';
 const emit = defineEmits(['close']);
 const { subscriptions, deleteSubscription } = useSubscriptions();
 
-const selectedId = ref('');
+const selectedId = ref(null);
 const submitError = ref('');
 
 const confirmDelete = async () => {
@@ -16,7 +16,14 @@ const confirmDelete = async () => {
     return;
   }
 
-  const subToDelete = subscriptions.value.find(s => s.id === selectedId.value);
+  const subToDelete = subscriptions.value.find((subscription) => (
+    Number(subscription.id) === Number(selectedId.value)
+  ));
+
+  if (!subToDelete) {
+    submitError.value = 'Selected subscription could not be found. Please reopen the dialog.';
+    return;
+  }
   
   // Standard confirmation for safety
   if (confirm(`Are you sure you want to delete ${subToDelete.name}?`)) {
@@ -43,7 +50,7 @@ const confirmDelete = async () => {
 
       <div class="input-group">
         <label>Select Subscription</label>
-        <select v-model="selectedId" class="delete-select">
+        <select v-model.number="selectedId" class="delete-select">
           <option value="" disabled>-- Select a subscription --</option>
           <option v-for="sub in subscriptions" :key="sub.id" :value="sub.id">
             {{ sub.name }} (₱{{ sub.amount }})

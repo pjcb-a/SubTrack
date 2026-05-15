@@ -27,6 +27,10 @@ class Subscription(db.Model):
     billing_cycle = db.Column(db.String(20), nullable=False)
     start_date = db.Column(db.Date, nullable=False)
     due_day = db.Column(db.Integer, nullable=False)
+    recurrence_unit = db.Column(db.String(20), nullable=True)
+    recurrence_interval = db.Column(db.Integer, nullable=True)
+    recurrence_end_mode = db.Column(db.String(20), nullable=True)
+    recurrence_end_date = db.Column(db.Date, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
@@ -47,6 +51,23 @@ class Subscription(db.Model):
         """
         next_due_date = get_next_due_date(self)
 
+        recurrence_unit = self.recurrence_unit
+        recurrence_interval = self.recurrence_interval
+
+        if not recurrence_unit:
+            recurrence_unit = "month"
+            if self.billing_cycle == "weekly":
+                recurrence_unit = "week"
+            elif self.billing_cycle == "annual":
+                recurrence_unit = "year"
+            elif self.billing_cycle == "daily":
+                recurrence_unit = "day"
+
+        if not recurrence_interval:
+            recurrence_interval = 1
+
+        recurrence_end_mode = self.recurrence_end_mode or "forever"
+
         return {
             "subscription_id": self.subscription_id,
             "user_id": self.user_id,
@@ -56,8 +77,17 @@ class Subscription(db.Model):
             "amount": float(self.amount),
             "billing_cycle": self.billing_cycle,
             "start_date": self.start_date.isoformat(),
+            "anchor_date": self.start_date.isoformat(),
             "next_due_date": next_due_date.isoformat() if next_due_date else None,
             "due_day": self.due_day,
+            "recurrence_unit": recurrence_unit,
+            "recurrence_interval": recurrence_interval,
+            "recurrence_end_mode": recurrence_end_mode,
+            "recurrence_end_date": (
+                self.recurrence_end_date.isoformat()
+                if self.recurrence_end_date
+                else None
+            ),
             "is_active": self.is_active,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
             "notification_setting": (

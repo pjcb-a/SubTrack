@@ -35,3 +35,76 @@ def ensure_subscription_deleted_at_column():
         text("ALTER TABLE subscriptions ADD COLUMN deleted_at TIMESTAMP NULL")
     )
     db.session.commit()
+
+
+def ensure_subscription_recurrence_columns():
+    """Add recurrence columns for older local databases."""
+    inspector = inspect(db.engine)
+
+    if "subscriptions" not in inspector.get_table_names():
+        return
+
+    existing_columns = {
+        column["name"] for column in inspector.get_columns("subscriptions")
+    }
+    statements = []
+
+    if "recurrence_unit" not in existing_columns:
+        statements.append(
+            "ALTER TABLE subscriptions ADD COLUMN recurrence_unit VARCHAR(20) NULL"
+        )
+
+    if "recurrence_interval" not in existing_columns:
+        statements.append(
+            "ALTER TABLE subscriptions ADD COLUMN recurrence_interval INTEGER NULL"
+        )
+
+    if "recurrence_end_mode" not in existing_columns:
+        statements.append(
+            "ALTER TABLE subscriptions ADD COLUMN recurrence_end_mode VARCHAR(20) NULL"
+        )
+
+    if "recurrence_end_date" not in existing_columns:
+        statements.append(
+            "ALTER TABLE subscriptions ADD COLUMN recurrence_end_date DATE NULL"
+        )
+
+    for statement in statements:
+        db.session.execute(text(statement))
+
+    if statements:
+        db.session.commit()
+
+    db.session.execute(
+        text(
+            """
+            UPDATE subscriptions
+            SET recurrence_unit = CASE
+                WHEN billing_cycle = 'daily' THEN 'day'
+                WHEN billing_cycle = 'weekly' THEN 'week'
+                WHEN billing_cycle = 'annual' THEN 'year'
+                ELSE 'month'
+            END
+            WHERE recurrence_unit IS NULL
+            """
+        )
+    )
+    db.session.execute(
+        text(
+            """
+            UPDATE subscriptions
+            SET recurrence_interval = 1
+            WHERE recurrence_interval IS NULL
+            """
+        )
+    )
+    db.session.execute(
+        text(
+            """
+            UPDATE subscriptions
+            SET recurrence_end_mode = 'forever'
+            WHERE recurrence_end_mode IS NULL
+            """
+        )
+    )
+    db.session.commit()

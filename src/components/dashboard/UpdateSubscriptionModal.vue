@@ -1,59 +1,101 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useSubscriptions } from '../../composables/useSubscriptions';
+import {
+  RECURRENCE_PRESET_OPTIONS,
+  RECURRENCE_UNIT_OPTIONS,
+  buildRecurrenceForm,
+  buildRecurrenceFromForm,
+} from '../../utils/subscriptionRecurrence';
 
 const emit = defineEmits(['close']);
 const { subscriptions, updateSubscription } = useSubscriptions();
 
-// State to track which subscription the user wants to edit
-const selectedId = ref('');
-
-// State to hold the form data
+const selectedId = ref(null);
 const editData = ref({
   name: '',
-  category: '',
   amount: null,
   cycle: 'monthly',
   dueDate: '',
-  notifyDays: 3
+  notifyDays: 3,
+  recurrencePreset: 'monthly',
+  customInterval: 2,
+  customUnit: 'day',
+  recurrenceEndMode: 'forever',
+  recurrenceEndDate: '',
 });
 const submitError = ref('');
+const submitWarning = ref('');
 
-// Watch for changes: When the user selects a subscription from the dropdown,
-// automatically fill the form fields with that subscription's current data.
 watch(selectedId, (newId) => {
-  if (newId) {
-    const subToEdit = subscriptions.value.find(s => s.id === newId);
-    if (subToEdit) {
-      // Create a copy so we don't edit the live data until "Save" is clicked
-      editData.value = { ...subToEdit };
-    }
-  } else {
-    // Reset if they deselect
-    editData.value = { name: '', category: '', amount: null, cycle: 'monthly', dueDate: '', notifyDays: 3 };
+  if (!newId) {
+    return;
   }
+
+  const subToEdit = subscriptions.value.find((subscription) => subscription.id === newId);
+  if (!subToEdit) {
+    return;
+  }
+
+  const recurrenceForm = buildRecurrenceForm(subToEdit);
+  editData.value = {
+    ...subToEdit,
+    recurrencePreset: recurrenceForm.preset,
+    customInterval: recurrenceForm.customInterval,
+    customUnit: recurrenceForm.customUnit,
+    recurrenceEndMode: subToEdit.recurrenceEndMode || 'forever',
+    recurrenceEndDate: subToEdit.recurrenceEndDate || '',
+  };
 });
 
 const submitUpdate = async () => {
   submitError.value = '';
+  submitWarning.value = '';
 
   if (!selectedId.value) {
     submitError.value = 'Please select a subscription to update.';
     return;
   }
+
   if (!editData.value.name || !editData.value.amount || !editData.value.dueDate) {
     submitError.value = 'Please fill in all required fields.';
     return;
   }
-  
+
+  if (
+    editData.value.recurrenceEndMode === 'until'
+    && !editData.value.recurrenceEndDate
+  ) {
+    submitError.value = 'Please choose when the recurrence should end.';
+    return;
+  }
+
+  const recurrence = buildRecurrenceFromForm({
+    preset: editData.value.recurrencePreset,
+    customInterval: editData.value.customInterval,
+    customUnit: editData.value.customUnit,
+  });
+
   try {
-    await updateSubscription(selectedId.value, { ...editData.value });
+    const result = await updateSubscription(Number(selectedId.value), {
+      ...editData.value,
+      cycle: editData.value.recurrencePreset,
+      recurrenceUnit: recurrence.recurrenceUnit,
+      recurrenceInterval: recurrence.recurrenceInterval,
+      recurrenceEndDate: editData.value.recurrenceEndMode === 'until'
+        ? editData.value.recurrenceEndDate
+        : null,
+    });
+
+    if (result.capWarning?.warning_message) {
+      submitWarning.value = result.capWarning.warning_message;
+      return;
+    }
   } catch (error) {
     submitError.value = error.message;
     return;
   }
-  
-  // Close the modal
+
   emit('close');
 };
 </script>
@@ -62,10 +104,10 @@ const submitUpdate = async () => {
   <div class="modal-overlay" @click.self="emit('close')">
     <div class="modal-card">
       <h3>Update Subscription</h3>
-      
+
       <div class="input-group highlight-group">
         <label>Select Subscription to Edit</label>
-        <select v-model="selectedId" class="select-target">
+        <select v-model.number="selectedId" class="select-target">
           <option value="" disabled>-- Choose a subscription --</option>
           <option v-for="sub in subscriptions" :key="sub.id" :value="sub.id">
             {{ sub.name }} ₱{{ sub.amount }}
@@ -80,44 +122,82 @@ const submitUpdate = async () => {
         </div>
 
         <div class="input-group">
-          <label>Amount </label>
+          <label>Amount</label>
           <input v-model="editData.amount" type="number" step="0.01" />
         </div>
 
         <div class="input-group">
-          <label>Cycle</label>
-          <select v-model="editData.cycle">
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="annual">Annual</option>
-          </select>
+          <label>Starts On</label>
+          <input v-model="editData.dueDate" type="date" />
         </div>
 
         <div class="input-group">
-          <label>Due Date</label>
-          <input v-model="editData.dueDate" type="date" />
+          <label>Recurrence</label>
+          <select v-model="editData.recurrencePreset">
+            <option
+              v-for="option in RECURRENCE_PRESET_OPTIONS"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <div v-if="editData.recurrencePreset === 'custom'" class="inline-grid">
+          <div class="input-group">
+            <label>Every</label>
+            <input v-model="editData.customInterval" type="number" min="1" step="1" />
+          </div>
+
+          <div class="input-group">
+            <label>Unit</label>
+            <select v-model="editData.customUnit">
+              <option
+                v-for="option in RECURRENCE_UNIT_OPTIONS"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Repeat Until</label>
+          <select v-model="editData.recurrenceEndMode">
+            <option value="forever">Forever</option>
+            <option value="until">Until a date</option>
+          </select>
+        </div>
+
+        <div v-if="editData.recurrenceEndMode === 'until'" class="input-group">
+          <label>End Date</label>
+          <input v-model="editData.recurrenceEndDate" type="date" />
         </div>
       </div>
+
       <div v-else class="empty-state">
         <p>Please select a subscription above to view its details.</p>
       </div>
 
       <p v-if="submitError" class="form-error">{{ submitError }}</p>
+      <p v-if="submitWarning" class="form-warning">{{ submitWarning }}</p>
 
       <div class="modal-actions">
         <button class="cancel-btn" @click="emit('close')">Cancel</button>
-        <button class="save-btn" @click="submitUpdate" :disabled="!selectedId">Update</button>
+        <button class="save-btn" :disabled="!selectedId" @click="submitUpdate">Update</button>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* These styles are identical to your AddModal for UI consistency */
 .modal-overlay {
   font-family: 'Montserrat', sans-serif;
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
+  inset: 0;
   background: rgba(5, 10, 8, 0.56);
   display: flex;
   justify-content: center;
@@ -130,7 +210,7 @@ const submitUpdate = async () => {
   color: var(--app-text);
   padding: 30px;
   border-radius: 15px;
-  width: 400px;
+  width: min(440px, calc(100vw - 32px));
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -142,6 +222,12 @@ const submitUpdate = async () => {
   display: flex;
   flex-direction: column;
   text-align: left;
+}
+
+.inline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .highlight-group {
@@ -198,36 +284,33 @@ const submitUpdate = async () => {
   font-size: 0.9rem;
 }
 
-.save-btn { 
-  background: var(--app-accent-strong); 
-  color: white; 
-  padding: 10px 20px; 
-  border-radius: 8px; 
-  border: none; 
-  cursor: pointer; 
-  font-weight: 600; 
+.form-warning {
+  color: #ab6a00;
+  font-size: 0.9rem;
 }
 
-.cancel-btn { 
-  background: var(--app-surface-soft); 
-  color: var(--app-text); 
-  padding: 10px 20px; 
-  border-radius: 8px; 
-  border: 1px solid var(--app-border); 
-  cursor: pointer; 
+.save-btn {
+  background: var(--app-accent-strong);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
   font-weight: 600;
 }
 
-.save-btn:hover:not(:disabled) { 
-  background: var(--app-accent); 
+.cancel-btn {
+  background: var(--app-surface-soft);
+  color: var(--app-text);
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--app-border);
+  cursor: pointer;
+  font-weight: 600;
 }
 
-.cancel-btn:hover { 
-  background: var(--app-surface-alt); 
-}
-
-.save-btn:disabled { 
-  background: color-mix(in srgb, var(--app-accent-strong) 40%, var(--app-surface-soft)); 
-  cursor: not-allowed; 
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
