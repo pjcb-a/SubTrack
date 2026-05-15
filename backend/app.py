@@ -78,7 +78,7 @@ def create_app():
     # referenced by subscription creation and editing flows.
     # Only run DB init locally. 
     # For Production (Vercel), handle migrations/seeding manually or via a script.
-    if os.getenv("FLASK_ENV") == "development":
+    if not os.getenv("VERCEL"):
         with app.app_context():
             db.create_all()
             ensure_subscription_deleted_at_column()
