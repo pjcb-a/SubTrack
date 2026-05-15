@@ -57,8 +57,8 @@ export async function apiRequest(path, options = {}) {
       body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
       ...restOptions,
     });
-  } catch {
-    throw buildBackendUnavailableError();
+  } catch (err) {
+  throw new Error("Cannot connect to backend. Make sure Flask is running on port 5001.");
   }
 
   const responseText = await response.text();
