@@ -34,5 +34,5 @@ class User(db.Model):
             "user_id": self.user_id,
             "username": self.username,
             "email": self.email,
-            "created_at": self.created_at.isoformat(),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }

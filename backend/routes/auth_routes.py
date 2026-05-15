@@ -19,47 +19,52 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_bp.post("/register")
 def register():
-    """Create a new user account and store a hashed password.
+    try:
+        """Create a new user account and store a hashed password.
 
-    Expected frontend caller:
-    A registration form should POST `username`, `email`, and `password` here.
-    """
-    data = request.get_json(silent=True) or {}
+        Expected frontend caller:
+        A registration form should POST `username`, `email`, and `password` here.
+        """
+        data = request.get_json(silent=True) or {}
 
-    username = str(data.get("username", "")).strip()
-    email = str(data.get("email", "")).strip().lower()
-    password = str(data.get("password", ""))
+        username = str(data.get("username", "")).strip()
+        email = str(data.get("email", "")).strip().lower()
+        password = str(data.get("password", ""))
 
-    if not username or not email or not password:
-        return jsonify({"error": "username, email, and password are required"}), 400
+        if not username or not email or not password:
+            return jsonify({"error": "username, email, and password are required"}), 400
 
-    if not is_valid_email(email):
-        return jsonify({"error": "Please provide a valid email address"}), 400
+        if not is_valid_email(email):
+            return jsonify({"error": "Please provide a valid email address"}), 400
 
-    if User.query.filter_by(username=username).first():
-        return jsonify({"error": "Username is already taken"}), 409
+        if User.query.filter_by(username=username).first():
+            return jsonify({"error": "Username is already taken"}), 409
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email is already registered"}), 409
+        if User.query.filter_by(email=email).first():
+            return jsonify({"error": "Email is already registered"}), 409
 
-    user = User(
-        username=username,
-        email=email,
-        password_hash=generate_password_hash(password),
-    )
+        user = User(
+            username=username,
+            email=email,
+            password_hash=generate_password_hash(password),
+        )
 
-    db.session.add(user)
-    db.session.commit()
+        db.session.add(user)
+        db.session.commit()
+        
+        return (
+            jsonify(
+                {
+                    "message": "User registered successfully",
+                    "user": user.to_dict(),
+                }
+            ),
+            201,
+        )
 
-    return (
-        jsonify(
-            {
-                "message": "User registered successfully",
-                "user": user.to_dict(),
-            }
-        ),
-        201,
-    )
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 @auth_bp.post("/login")
